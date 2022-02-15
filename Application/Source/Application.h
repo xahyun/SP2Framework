@@ -21,14 +21,22 @@ public:
 	static void worldSpaceToScreenSpace(float& xpos, float& ypos);
 	static void screenSpaceToWorldSpace(float& xpos, float& ypos);
 
+	static int GetWindowWidth();
+	static int GetWindowHeight();
+
 	//window sizes
 	static unsigned m_width;
 	static unsigned m_height;
+
+	//change scenes
+	static void change(int scene);
 
 private:
 
 	//Declare a window object
 	StopWatch m_timer;
+
+	static unsigned i;
 };
 
 #endif

@@ -12,6 +12,7 @@
 #include <stdlib.h>
 
 #include "SceneTemplate.h"
+#include "SceneMainMenu.h"
 
 GLFWwindow* m_window;
 const unsigned char FPS = 60; // FPS of this game
@@ -19,6 +20,7 @@ const unsigned int frameTime = 1000 / FPS; // time for each frame
 
 unsigned Application::m_height;
 unsigned Application::m_width;
+unsigned Application::i;
 
 //Define an error callback
 static void error_callback(int error, const char* description)
@@ -39,13 +41,13 @@ void resize_callback(GLFWwindow* window, int w, int h) {
 	//this does not work lol
 	Application::m_height = h;
 	Application::m_width = w;
-	
+
 	glViewport(0, 0, w, h); //update opengl the new window size
 }
 
 bool Application::IsKeyPressed(unsigned short key)
 {
-    return ((GetAsyncKeyState(key) & 0x8001) != 0);
+	return ((GetAsyncKeyState(key) & 0x8001) != 0);
 }
 
 void Application::getCursorPosition(double& xpos, double& ypos)
@@ -85,6 +87,20 @@ void Application::screenSpaceToWorldSpace(float& xpos, float& ypos)
 	ypos = (ypos * Application::m_height) / 60;
 }
 
+int Application::GetWindowWidth()
+{
+	return m_width;
+}
+
+int Application::GetWindowHeight()
+{
+	return m_height;
+}
+
+void Application::change(int scene)
+{
+	i = scene;
+}
 
 Application::Application()
 {
@@ -114,6 +130,7 @@ void Application::Init()
 
 	m_width = 800;
 	m_height = 600;
+	i = 0;
 
 	//Create a window and create its OpenGL context
 	m_window = glfwCreateWindow(m_width, m_height, "Pls let me pass COMG", NULL, NULL);
@@ -122,7 +139,7 @@ void Application::Init()
 	//If the window couldn't be created
 	if (!m_window)
 	{
-		fprintf( stderr, "Failed to open GLFW window.\n" );
+		fprintf(stderr, "Failed to open GLFW window.\n");
 		glfwTerminate();
 		exit(EXIT_FAILURE);
 	}
@@ -138,19 +155,21 @@ void Application::Init()
 	GLenum err = glewInit();
 
 	//If GLEW hasn't initialized
-	if (err != GLEW_OK) 
+	if (err != GLEW_OK)
 	{
 		fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
 		//return -1;
 	}
-
-
 }
 
 void Application::Run()
 {
 	//Main Loop
-	Scene* scene = new SceneTemplate();
+	Scene* scene1 = new SceneMainMenu();
+	Scene* scene2 = new SceneTemplate();
+	Scene* scene = scene1;
+	scene1->Init();
+	scene2->Init();
 	scene->Init();
 
 	m_timer.startTimer();    // Start timer to calculate how long it takes to render this frame
@@ -162,8 +181,10 @@ void Application::Run()
 		glfwSwapBuffers(m_window);
 		//Get and organize events, like keyboard and mouse input, window resizing, etc...
 		glfwPollEvents();
-        m_timer.waitUntil(frameTime);       // Frame rate limiter. Limits each frame to a specified time in ms.
+		m_timer.waitUntil(frameTime);       // Frame rate limiter. Limits each frame to a specified time in ms.
 
+		if (i == 1)
+			scene = scene2;
 	} //Check if the ESC key had been pressed or if the window had been closed
 
 	scene->Exit();
