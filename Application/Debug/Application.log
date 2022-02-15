@@ -1,4 +1,4 @@
-﻿  Application.cpp
-  SceneTemplate.cpp
-  Generating Code...
-  Application.vcxproj -> C:\Users\65916\Desktop\Projects\COMG OFFICIAL\Debug\Application.exe
+﻿  SceneMainMenu.cpp
+C:\Users\avxl0\OneDrive\Documents\GitHub\SP2Framework\Application\Source\SceneMainMenu.cpp(235,15): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\avxl0\OneDrive\Documents\GitHub\SP2Framework\Application\Source\SceneMainMenu.cpp(236,15): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+  Application.vcxproj -> C:\Users\avxl0\OneDrive\Documents\GitHub\SP2Framework\Debug\Application.exe
