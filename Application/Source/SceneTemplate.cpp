@@ -173,7 +173,6 @@ void SceneTemplate::Update(double dt)
 {
 	camera.Update(static_cast<float>(dt));
 
-
 	//debug controls xx
 	{
 		if (Application::IsKeyPressed('1')) {
@@ -209,6 +208,7 @@ void SceneTemplate::Update(double dt)
 			light[1].position.y -= (float)(6 * dt);
 		if (Application::IsKeyPressed('P'))
 			light[1].position.y += (float)(6 * dt);
+
 	}
 
 }
