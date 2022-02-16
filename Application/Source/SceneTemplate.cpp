@@ -175,7 +175,6 @@ void SceneTemplate::Init()
 
 	meshList[GEO_GRASS] = MeshBuilder::GenerateOBJMTL("model7", "OBJ//Grass.obj", "OBJ//Grass.mtl");
 	meshList[GEO_FENCE] = MeshBuilder::GenerateOBJMTL("model7", "OBJ//fence.obj", "OBJ//fence.mtl");
-	meshList[GEO_WIDEFENCE] = MeshBuilder::GenerateOBJMTL("model7", "OBJ//WideFence.obj", "OBJ//WideFence.mtl");
 
 	meshList[GEO_CROSSWALK] = MeshBuilder::GenerateOBJMTL("model7", "OBJ//Crosswalk.obj", "OBJ//Crosswalk.mtl");
 	meshList[GEO_HOUSE3] = MeshBuilder::GenerateOBJMTL("model7", "OBJ//house3.obj", "OBJ//house3.mtl"); 
@@ -206,6 +205,8 @@ void SceneTemplate::Init()
 	meshList[GEO_AMBULANCE] = MeshBuilder::GenerateOBJMTL("model7", "OBJ//Ambulance.obj", "OBJ//Ambulance.mtl");
 	meshList[GEO_VAN] = MeshBuilder::GenerateOBJMTL("model7", "OBJ//Van.obj", "OBJ//Van.mtl");
 	meshList[GEO_TAXI] = MeshBuilder::GenerateOBJMTL("model7", "OBJ//Taxi.obj", "OBJ//Taxi.mtl");
+	meshList[GEO_FIRETRUCK] = MeshBuilder::GenerateOBJMTL("model7", "OBJ//Firetruck.obj", "OBJ//Firetruck.mtl");
+	meshList[GEO_POLICE] = MeshBuilder::GenerateOBJMTL("model7", "OBJ//Police.obj", "OBJ//Police.mtl");
 
 
 	meshList[GEO_FARBUILDING] = MeshBuilder::GenerateOBJMTL("model7", "OBJ//FarBuilding.obj", "OBJ//FarBuilding.mtl");
@@ -721,7 +722,7 @@ void SceneTemplate::RenderSkybox()
 	modelStack.Rotate(-270, 0, 1, 0);
 	modelStack.Translate(-17.7, 0, -2.55);
 	RenderMesh(meshList[GEO_TAXI], true);
-	modelStack.PopMatrix();//van
+	modelStack.PopMatrix();//taxi
 
 
 	modelStack.PushMatrix();
@@ -731,6 +732,27 @@ void SceneTemplate::RenderSkybox()
 	modelStack.Translate(-1.5, 0, -1.55);
 	RenderMesh(meshList[GEO_VAN], true);
 	modelStack.PopMatrix();//van
+
+
+	modelStack.PushMatrix();
+	//scale, translate, rotate
+	modelStack.Scale(20, 20, 20);
+	modelStack.Rotate(-180, 0, 1, 0);
+	modelStack.Translate(-11, 0, -3.55);
+	RenderMesh(meshList[GEO_FIRETRUCK], true);
+	modelStack.PopMatrix();//firetruck
+
+
+
+	modelStack.PushMatrix();
+	//scale, translate, rotate
+	modelStack.Scale(20, 20, 20);
+	modelStack.Rotate(-180, 0, 1, 0);
+	modelStack.Translate(9.5, 0, -3.55);
+	RenderMesh(meshList[GEO_POLICE], true);
+	modelStack.PopMatrix();//police
+
+
 
 	modelStack.PushMatrix();
 	//scale, translate, rotate
