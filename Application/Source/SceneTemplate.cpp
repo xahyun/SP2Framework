@@ -181,6 +181,8 @@ void SceneTemplate::Init()
 	meshList[GEO_HOUSE3] = MeshBuilder::GenerateOBJMTL("model7", "OBJ//house3.obj", "OBJ//house3.mtl"); 
 	meshList[GEO_HOUSE4] = MeshBuilder::GenerateOBJMTL("model7", "OBJ//house4.obj", "OBJ//house4.mtl");
 	meshList[GEO_TREE] = MeshBuilder::GenerateOBJMTL("model7", "OBJ//Tree.obj", "OBJ//Tree.mtl");
+	meshList[GEO_BIGTREE] = MeshBuilder::GenerateOBJMTL("model7", "OBJ//BigTree.obj", "OBJ//BigTree.mtl");
+
 	meshList[GEO_CURVE] = MeshBuilder::GenerateOBJMTL("model7", "OBJ//RoadCurve.obj", "OBJ//RoadCurve.mtl");
 	meshList[GEO_SKYSCRAPER] = MeshBuilder::GenerateOBJMTL("model7", "OBJ//Skyscraper.obj", "OBJ//Skyscraper.mtl");
 	meshList[GEO_SKYSCRAPER2] = MeshBuilder::GenerateOBJMTL("model7", "OBJ//Skyscraper2.obj", "OBJ//Skyscraper2.mtl");
@@ -202,6 +204,8 @@ void SceneTemplate::Init()
 
 	meshList[GEO_CAR] = MeshBuilder::GenerateOBJMTL("model7", "OBJ//CAR.obj", "OBJ//CAR.mtl");
 	meshList[GEO_AMBULANCE] = MeshBuilder::GenerateOBJMTL("model7", "OBJ//Ambulance.obj", "OBJ//Ambulance.mtl");
+	meshList[GEO_VAN] = MeshBuilder::GenerateOBJMTL("model7", "OBJ//Van.obj", "OBJ//Van.mtl");
+	meshList[GEO_TAXI] = MeshBuilder::GenerateOBJMTL("model7", "OBJ//Taxi.obj", "OBJ//Taxi.mtl");
 
 
 	meshList[GEO_FARBUILDING] = MeshBuilder::GenerateOBJMTL("model7", "OBJ//FarBuilding.obj", "OBJ//FarBuilding.mtl");
@@ -583,13 +587,33 @@ void SceneTemplate::RenderSkybox()
 	modelStack.PopMatrix();
 
 	modelStack.PushMatrix();
+	//scale, translate, rotate
+	modelStack.Scale(30, 30, 30);
+	modelStack.Translate(0.7, 0, 2);
+	RenderMesh(meshList[GEO_FENCE], true);
+	modelStack.PopMatrix();
+
+	modelStack.PushMatrix();
 	modelStack.Scale(30, 30, 30);
 	modelStack.Translate(0.7, 0, -2.75);
 	RenderMesh(meshList[GEO_FENCE], true);
 	modelStack.PopMatrix();
 
+
 	modelStack.PushMatrix();
-	//scale, translate, rotate
+	modelStack.Scale(30, 30, 30);
+	modelStack.Translate(0.7, 0, -4.2);
+	RenderMesh(meshList[GEO_FENCE], true);
+	modelStack.PopMatrix();
+
+
+
+
+
+
+
+	modelStack.PushMatrix();
+	//scale, translate, rotate//long fence
 	modelStack.Scale(50, 30, 50);
 	modelStack.Translate(3.2, 0, 1.15);
 	modelStack.Rotate(-90, 0, 1, 0);
@@ -601,6 +625,14 @@ void SceneTemplate::RenderSkybox()
 	modelStack.Scale(50, 30, 50);
 	modelStack.Translate(2.2, 0, 0.15);
 	RenderMesh(meshList[GEO_FENCE], true);
+	modelStack.PopMatrix();
+
+
+	modelStack.PushMatrix();
+	//scale, translate, rotate
+	modelStack.Scale(30, 30, 30);
+	modelStack.Translate(3.5, 0, 2);
+	RenderMesh(meshList[GEO_BIGTREE], true);
 	modelStack.PopMatrix();
 
 	/*modelStack.PushMatrix();
@@ -680,6 +712,30 @@ void SceneTemplate::RenderSkybox()
 	//scale, translate, rotate
 	modelStack.Scale(30, 30, 30);
 	modelStack.Translate(0.7, 0, 1.55);
+	RenderMesh(meshList[GEO_TREE], true);
+	modelStack.PopMatrix();
+
+	modelStack.PushMatrix();
+	//scale, translate, rotate
+	modelStack.Scale(20, 20, 20);
+	modelStack.Rotate(-270, 0, 1, 0);
+	modelStack.Translate(-17.7, 0, -2.55);
+	RenderMesh(meshList[GEO_TAXI], true);
+	modelStack.PopMatrix();//van
+
+
+	modelStack.PushMatrix();
+	//scale, translate, rotate
+	modelStack.Scale(20, 20, 20);
+	modelStack.Rotate(-90, 0, 1, 0);
+	modelStack.Translate(-1.5, 0, -1.55);
+	RenderMesh(meshList[GEO_VAN], true);
+	modelStack.PopMatrix();//van
+
+	modelStack.PushMatrix();
+	//scale, translate, rotate
+	modelStack.Scale(30, 30, 30);
+	modelStack.Translate(0.7, 0, -2.55);
 	RenderMesh(meshList[GEO_TREE], true);
 	modelStack.PopMatrix();
 
@@ -912,6 +968,29 @@ void SceneTemplate::RenderSkybox()
 
 	
 
+
+	modelStack.PushMatrix();
+	//scale, translate, rotate
+	modelStack.Scale(175, 300, 175);
+	modelStack.Translate(-0.3, 0, -1);
+	RenderMesh(meshList[GEO_FARBUILDING2], true);
+	modelStack.PopMatrix();
+
+	modelStack.PushMatrix();
+	//scale, translate, rotate
+	modelStack.Scale(175, 300, 175);
+	modelStack.Translate(0.3, 0, -1);
+	RenderMesh(meshList[GEO_FARBUILDING3], true);
+	modelStack.PopMatrix();
+
+
+	modelStack.PushMatrix();
+	//scale, translate, rotate
+	modelStack.Scale(175, 300, 175);
+	modelStack.Translate(1.5, 0, -1.5);
+	RenderMesh(meshList[GEO_FARBUILDING4], true);
+	modelStack.PopMatrix();
+
 }
 
 void SceneTemplate::RenderText(Mesh* mesh, std::string text, Color color)
@@ -1049,5 +1128,4 @@ void SceneTemplate::RenderImageOnScreen(Mesh* mesh, Color color, float sizex, fl
 	modelStack.PopMatrix();
 	glEnable(GL_DEPTH_TEST); //uncomment for RenderTextOnScreen
 }
-
 
