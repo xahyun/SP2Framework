@@ -25,8 +25,12 @@ class SceneMainMenu : public Scene
 		GEO_TEMP_QUAD,
 
 		GEO_TITLE,
+		GEO_TITLEIMAGE,
+		GEO_SCAMIMAGE,
 		GEO_START,
 		GEO_STARTBUTTON,
+		GEO_QUIT,
+		GEO_QUITBUTTON,
 
 		//skybox and lightball
 		GEO_LIGHTBALL,

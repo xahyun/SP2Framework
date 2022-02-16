@@ -164,16 +164,24 @@ void SceneMainMenu::Init()
 		meshList[GEO_TEMP_QUAD] = MeshBuilder::GenerateSphere("sphere", Color(1, 0, 0), 1);
 
 		meshList[GEO_TEXT] = MeshBuilder::GenerateText("text", 16, 16);
-		meshList[GEO_TEXT]->textureID = LoadTGA("Image//fonts//ArialRegularBoldItalic.tga");
+		meshList[GEO_TEXT]->textureID = LoadTGA("Image//fonts//SegoeUI.tga");
 		meshList[GEO_DIALOG_BOX] = MeshBuilder::GenerateQuad("Diag", Color(1, 1, 1), 80, 30, 1);
 		meshList[GEO_DIALOG_BOX]->textureID = LoadTGA("Image//dialogBox.tga");
 
 		meshList[GEO_TITLE] = MeshBuilder::GenerateText("title", 16, 16);
 		meshList[GEO_TITLE]->textureID = LoadTGA("Image//fonts//ArialRegularBoldItalic.tga");
+		meshList[GEO_TITLEIMAGE] = MeshBuilder::GenerateQuad("titleimage", Color(1, 1, 1), 1.f);
+		meshList[GEO_TITLEIMAGE]->textureID = LoadTGA("Image//titleimage.tga");
+		meshList[GEO_SCAMIMAGE] = MeshBuilder::GenerateQuad("scamimage", Color(1, 1, 1), 1.f);
+		meshList[GEO_SCAMIMAGE]->textureID = LoadTGA("Image//isitscam.tga");
 		meshList[GEO_START] = MeshBuilder::GenerateText("start", 16, 16);
-		meshList[GEO_START]->textureID = LoadTGA("Image//fonts//ArialRegularBoldItalic.tga");
+		meshList[GEO_START]->textureID = LoadTGA("Image//fonts//SegoeUI.tga");
 		meshList[GEO_STARTBUTTON] = MeshBuilder::GenerateQuad("startbutton", Color(1, 1, 1), 1.f);
 		meshList[GEO_STARTBUTTON]->textureID = LoadTGA("Image//startButton.tga");
+		meshList[GEO_QUIT] = MeshBuilder::GenerateText("quit", 16, 16);
+		meshList[GEO_QUIT]->textureID = LoadTGA("Image//fonts//SegoeUI.tga");
+		meshList[GEO_QUITBUTTON] = MeshBuilder::GenerateQuad("quitbutton", Color(1, 1, 1), 1.f);
+		meshList[GEO_QUITBUTTON]->textureID = LoadTGA("Image//startButton.tga");
 	}
 	Mtx44 projection;
 	projection.SetToPerspective(45.f, 4.f / 3.f, 0.1f, 1000.f);
@@ -235,10 +243,15 @@ void SceneMainMenu::Update(double dt)
 			float posX = x / w * 80; //convert (0,800) to (0,80)
 			float posY = 60 - (y / h * 60); //convert (600,0) to (0,60)
 			std::cout << "posX:" << posX << " , posY:" << posY << std::endl;
-			if (posX > 25 && posX < 55 && posY > 22.5 && posY < 27.5) //hit start button
+			if (posX > 26.5 && posX < 56.5 && posY > 16.5 && posY < 21.5) //hit start button
 			{
 				buttonhit = "Hit!";
 				Application::change(1);
+			}
+			else if (posX > 26.5 && posX < 56.5 && posY > 10.5 && posY < 15.5) // hit quit button
+			{
+				buttonhit = "Quit!";
+				Application::change(10); //placeholding at 10 first to quit
 			}
 			else
 			{
@@ -280,9 +293,14 @@ void SceneMainMenu::Render()
 
 	//render mainmenu
 	{
-		RenderTextOnScreen(meshList[GEO_TITLE], "SCAMULATION", Color(0, 0, 0), 10, 7, 35);
-		RenderImageOnScreen(meshList[GEO_STARTBUTTON], Color(0, 0, 0), 30, 5, 40, 25);
-		RenderTextOnScreen(meshList[GEO_START], "START", Color(0, 0, 0), 5, 32, 22.5);
+		RenderImageOnScreen(meshList[GEO_TITLEIMAGE], Color(0, 0, 0), 85, 40, 40, 40);
+		RenderImageOnScreen(meshList[GEO_SCAMIMAGE], Color(0, 0, 0), 30, 15, 65, 30);
+		RenderTextOnScreen(meshList[GEO_TITLE], "SCAMULATION", Color(0, 0, 0), 8, 14.6, 35.6);
+		RenderTextOnScreen(meshList[GEO_TITLE], "SCAMULATION", Color(1, 0, 0), 8, 15, 36);
+		RenderImageOnScreen(meshList[GEO_STARTBUTTON], Color(0, 0, 0), 30, 5, 41.5, 19);
+		RenderTextOnScreen(meshList[GEO_START], "START", Color(0, 0, 0), 5, 34, 16.5);
+		RenderImageOnScreen(meshList[GEO_QUITBUTTON], Color(0, 0, 0), 30, 5, 41.5, 13);
+		RenderTextOnScreen(meshList[GEO_QUIT], "QUIT", Color(0, 0, 0), 5, 36, 10.5);
 	}
 }
 

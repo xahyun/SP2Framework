@@ -185,6 +185,8 @@ void Application::Run()
 
 		if (i == 1)
 			scene = scene2;
+		if (i == 10)
+			break;
 	} //Check if the ESC key had been pressed or if the window had been closed
 
 	scene->Exit();
