@@ -46,6 +46,7 @@ class SceneTemplate : public Scene
 		GEO_HOUSE3,
 		GEO_HOUSE4,
 		GEO_TREE,
+		GEO_BIGTREE,
 		GEO_CURVE,
 		GEO_SKYSCRAPER,
 		GEO_SKYSCRAPER2,
@@ -65,6 +66,8 @@ class SceneTemplate : public Scene
 
 		GEO_CAR,
 		GEO_AMBULANCE,
+		GEO_VAN,
+		GEO_TAXI,
 
 
 
