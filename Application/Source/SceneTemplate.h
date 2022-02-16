@@ -41,7 +41,6 @@ class SceneTemplate : public Scene
 		GEO_BIGHOUSE,
 		GEO_GRASS,
 		GEO_FENCE,
-		GEO_WIDEFENCE,
 		GEO_CROSSWALK,
 		GEO_HOUSE3,
 		GEO_HOUSE4,
@@ -68,6 +67,8 @@ class SceneTemplate : public Scene
 		GEO_AMBULANCE,
 		GEO_VAN,
 		GEO_TAXI,
+		GEO_FIRETRUCK,
+		GEO_POLICE,
 
 
 
@@ -75,7 +76,7 @@ class SceneTemplate : public Scene
 		GEO_FARBUILDING2,
 		GEO_FARBUILDING3,
 		GEO_FARBUILDING4,
-		GEO_FARBUILDING5,
+		//GEO_FARBUILDING5,
 
 
 
