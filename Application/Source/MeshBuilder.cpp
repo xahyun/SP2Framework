@@ -772,3 +772,36 @@ Mesh* MeshBuilder::GenerateText(const std::string& meshName, unsigned numRow, un
 	mesh->indexSize = index_buffer_data.size();
 	return mesh;
 }
+
+Mesh* MeshBuilder::GenerateOfficefloor(const std::string& meshName, Color color, float lengthX, float lengthY, int texcoord)
+{
+	Vertex v;
+	std::vector<Vertex> vertex_buffer_data;
+	std::vector<GLuint> index_buffer_data;
+
+	v.pos.Set(0.5f * lengthX, 0.5f * lengthY, 0.f);    v.color = color; v.normal.Set(0, 0, 1);  vertex_buffer_data.push_back(v); v.texCoord.Set(0, 5); //v0
+	v.pos.Set(-0.5f * lengthX, 0.5f * lengthY, 0.f);    v.color = color; v.normal.Set(0, 0, 1);  vertex_buffer_data.push_back(v); v.texCoord.Set(5, 5); //v1
+	v.pos.Set(-0.5f * lengthX, -0.5f * lengthY, 0.f);    v.color = color; v.normal.Set(0, 0, 1);  vertex_buffer_data.push_back(v); v.texCoord.Set(5, 0); //v2
+	v.pos.Set(0.5f * lengthX, -0.5f * lengthY, 0.f);    v.color = color; v.normal.Set(0, 0, 1); vertex_buffer_data.push_back(v); v.texCoord.Set(0, 0);//v3
+
+	//tri1
+	index_buffer_data.push_back(0);
+	index_buffer_data.push_back(1);
+	index_buffer_data.push_back(2);
+	//tri2
+	index_buffer_data.push_back(0);
+	index_buffer_data.push_back(2);
+	index_buffer_data.push_back(3);
+
+	Mesh* mesh = new Mesh(meshName);
+
+	glBindBuffer(GL_ARRAY_BUFFER, mesh->vertexBuffer);
+	glBufferData(GL_ARRAY_BUFFER, vertex_buffer_data.size() * sizeof(Vertex), &vertex_buffer_data[0], GL_STATIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->indexBuffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_buffer_data.size() * sizeof(GLuint), &index_buffer_data[0], GL_STATIC_DRAW);
+
+	mesh->indexSize = index_buffer_data.size();
+	mesh->mode = Mesh::DRAW_TRIANGLES;
+
+	return mesh;
+}

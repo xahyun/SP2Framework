@@ -31,6 +31,7 @@ public:
 	static Mesh* GenerateOBJMTL(const std::string& meshName, const std::string& file_path, const std::string& mtl_path);
 
 	static Mesh* GenerateText(const std::string& meshName, unsigned numRow, unsigned numCol);
+	static Mesh* GenerateOfficefloor(const std::string& meshName, Color color, float lengthX = 1.f, float lengthY = 1.f, int texcoord = 1);
 };
 
 #endif
