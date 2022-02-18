@@ -17,8 +17,6 @@ SceneHome::SceneHome()
 	
 }
 
-
-
 SceneHome::~SceneHome()
 {
 }
@@ -271,7 +269,6 @@ void SceneHome::Render()
 		RenderSkybox();
 		RenderHome();
 	}
-
 }
 
 
@@ -485,9 +482,6 @@ void SceneHome::RenderHome()
 		modelStack.Scale(30, 30, 30);
 		RenderMesh(meshList[GEO_SIDETABLE], true);
 		modelStack.PopMatrix();
-
-
-
 	}
 
 	//lounge area
@@ -594,7 +588,6 @@ void SceneHome::RenderHome()
 		modelStack.Scale(30, 30, 30);
 		RenderMesh(meshList[GEO_BOOKS], true);
 		modelStack.PopMatrix();
-
 
 		modelStack.PushMatrix();
 		modelStack.Translate(33, 18, -57);

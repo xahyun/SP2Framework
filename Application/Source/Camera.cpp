@@ -79,7 +79,6 @@ void Camera::Update(double dt)
 	if (Application::IsKeyPressed('M'))
 		distance += CAMERA_SPEED * static_cast<float>(dt); //move camera right
 
-
 	float x = CAMERA_SPEED * distance * cosf(Math::DegreeToRadian(altitude)) * cosf(Math::DegreeToRadian(azimuth));
 	float y = CAMERA_SPEED * distance * sinf(Math::DegreeToRadian(altitude));
 	float z = CAMERA_SPEED * distance * cosf(Math::DegreeToRadian(altitude)) * sinf(Math::DegreeToRadian(azimuth));
