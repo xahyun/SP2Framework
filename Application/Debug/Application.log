@@ -1,10 +1,8 @@
 ﻿  Application.cpp
   Camera.cpp
-C:\Users\avxl0\OneDrive\Documents\GitHub\SP2Framework\Application\Source\Camera.cpp(107,19): warning C4390: ';': empty controlled statement found; is this the intent?
   FIrstPersonCamera.cpp
   SceneHome.cpp
   SceneOffice.cpp
   SceneTemplate.cpp
-  Utility.cpp
   Generating Code...
   Application.vcxproj -> C:\Users\avxl0\OneDrive\Documents\GitHub\SP2Framework\Debug\Application.exe
