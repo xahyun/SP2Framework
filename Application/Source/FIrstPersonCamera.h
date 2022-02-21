@@ -20,6 +20,7 @@ public:
 	float xOffset, yOffset;
 	//if need to stay static
 	bool canMove;
+	bool canLookAround;
 
 	FirstPersonCamera();
 	~FirstPersonCamera();
