@@ -1,8 +1,8 @@
-
 #ifndef APPLICATION_H
 #define APPLICATION_H
 
 #include "timer.h"
+#include "gameManager.h"
 #include <string>
 
 class Application
@@ -18,8 +18,8 @@ public:
 	static void hideCursorWhenInScreen();
 	static void setCursorPos(double xpos, double ypos);
 	static bool isMouseButtonPressed(int mouseButton);
-	static void worldSpaceToScreenSpace(float& xpos, float& ypos);
-	static void screenSpaceToWorldSpace(float& xpos, float& ypos);
+	static void worldSpaceToScreenSpace(double& xpos, double& ypos);
+	static void screenSpaceToWorldSpace(double& xpos, double& ypos);
 
 	//window sizes
 	static unsigned m_width;
