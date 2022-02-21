@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "SceneTemplate.h"
+#include "clock.h"
 
 GLFWwindow* m_window;
 const unsigned char FPS = 60; // FPS of this game
@@ -19,6 +19,8 @@ const unsigned int frameTime = 1000 / FPS; // time for each frame
 
 unsigned Application::m_height;
 unsigned Application::m_width;
+
+gameManager GameManager;
 
 //Define an error callback
 static void error_callback(int error, const char* description)
@@ -63,6 +65,7 @@ void Application::hideCursorWhenInScreen()
 	}
 }
 
+
 void Application::setCursorPos(double xpos, double ypos)
 {
 	glfwSetCursorPos(m_window, xpos, ypos);
@@ -73,13 +76,13 @@ bool Application::isMouseButtonPressed(int mouseButton)
 	return glfwGetMouseButton(m_window, mouseButton) != 0;
 }
 
-void Application::worldSpaceToScreenSpace(float& xpos, float& ypos)
+void Application::worldSpaceToScreenSpace(double& xpos, double& ypos)
 {
 	xpos = (xpos * 80) / Application::m_width;
-	ypos = (ypos * 60) / Application::m_height;
+	ypos = 60 - ((ypos * 60) / Application::m_height);
 }
 
-void Application::screenSpaceToWorldSpace(float& xpos, float& ypos)
+void Application::screenSpaceToWorldSpace(double& xpos, double& ypos)
 {
 	xpos = (xpos * Application::m_width) / 80;
 	ypos = (ypos * Application::m_height) / 60;
@@ -150,14 +153,13 @@ void Application::Init()
 void Application::Run()
 {
 	//Main Loop
-	Scene* scene = new SceneTemplate();
-	scene->Init();
+	GameManager.Init();
+	GameManager.StartGame();
 
 	m_timer.startTimer();    // Start timer to calculate how long it takes to render this frame
-	while (!glfwWindowShouldClose(m_window) && !IsKeyPressed(VK_ESCAPE))
+	while (!glfwWindowShouldClose(m_window) && !IsKeyPressed(VK_ESCAPE) && !GameManager.isFinishedGame)
 	{
-		scene->Update(m_timer.getElapsedTime());
-		scene->Render();
+		GameManager.Update(m_timer.getElapsedTime());
 		//Swap buffers
 		glfwSwapBuffers(m_window);
 		//Get and organize events, like keyboard and mouse input, window resizing, etc...
@@ -166,8 +168,8 @@ void Application::Run()
 
 	} //Check if the ESC key had been pressed or if the window had been closed
 
-	scene->Exit();
-	delete scene;
+	GameManager.FinishGame();
+	GameManager.ExitGame();
 }
 
 void Application::Exit()
