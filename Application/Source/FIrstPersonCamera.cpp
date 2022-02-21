@@ -10,6 +10,7 @@ FirstPersonCamera::FirstPersonCamera()
     xOffset = 0; yOffset = 0;
     xpos = 0; ypos = 0;
     canMove = true;
+    canLookAround = true;
 }
 
 FirstPersonCamera::~FirstPersonCamera()
@@ -57,43 +58,24 @@ void FirstPersonCamera::Update(float dt)
             moveDown(dt);
         }
     }
-    if (xOffset < -1)
-    {
-        lookLeft(dt);
-    }
-    else if (xOffset > 1)
-    {
-        lookRight(dt);
-    }
-    if (yOffset < -1)
-    {
-        lookDown(dt);
-
-    }
-    else if (yOffset > 1)
-    {
-        lookUp(dt);
-    }
-
-
-
-    if (Application::IsKeyPressed('N'))
-    {
-        Vector3 view = target - position;
-        if (view.Length() > 5) //Prevent the camera from touching the origin
+    if (canLookAround) {
+        if (xOffset < -1)
         {
-            view.Normalize();
-            position += view * ZOOM_SPEED * static_cast<float>(dt);
+            lookLeft(dt);
         }
-    }
-    if (Application::IsKeyPressed('M'))
-    {
-        Vector3 view = (target - position).Normalized();
-        position -= view * ZOOM_SPEED * static_cast<float>(dt);
-    }
-    if (Application::IsKeyPressed('R'))
-    {
-        Reset();
+        else if (xOffset > 1)
+        {
+            lookRight(dt);
+        }
+        if (yOffset < -1)
+        {
+            lookDown(dt);
+
+        }
+        else if (yOffset > 1)
+        {
+            lookUp(dt);
+        }
     }
 
     xpos = mousex; ypos = mousey;
