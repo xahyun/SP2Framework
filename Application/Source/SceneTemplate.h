@@ -10,6 +10,8 @@
 #include "Light.h"
 #include "LoadTGA.h"
 #include "Material.h"
+#include "clock.h"
+#include "player.h"
 
 #define SKYBOXSIZE 1000
 #define PLAYERSPEED 2.0f
@@ -23,6 +25,23 @@ class SceneTemplate : public Scene
 		//temporary items
 		GEO_DIALOG_BOX,
 		GEO_TEMP_QUAD,
+
+		//otherUI
+		GEO_WATCH,
+
+		//phone ui
+		GEO_NOTIF_BOX,
+		GEO_PHONE_UI,
+		GEO_CHAT_ICON,
+		GEO_PHONE_ICON,
+		GEO_HOME_ICON,
+		GEO_MONEY_ICON,
+		GEO_SOCIALSCORE_ICON,
+		GEO_SOCIALSCORE_UI,
+		GEO_SOCIALSCORE_BAR,
+		GEO_TASKS_ICON,
+		GEO_HELP_ICON,
+		GEO_SETTINGS_ICON,
 
 		//skybox and lightball
 		GEO_LIGHTBALL,
@@ -78,14 +97,26 @@ class SceneTemplate : public Scene
 		U_TOTAL,
 	};
 
+	enum PhoneScreen {
+		P_PHONEOFF,
+		P_HOME,
+		P_CHAT,
+		P_CHATLIST,
+		P_MONEY,
+		P_SOCIALSCORE,
+		P_HELP,
+		P_TASKS
+	};
+
 public:
 	SceneTemplate();
 	~SceneTemplate();
 
-	virtual void Init();
-	virtual void Update(double dt);
-	virtual void Render();
-	virtual void Exit();
+	void Init();
+	void TransferGameInfo(Game* game);
+	void Update(double dt);
+	void Render();
+	void Exit();
 
 private:
 	unsigned m_vertexArrayID;
@@ -100,15 +131,34 @@ private:
 	//functions to render things
 	void RenderMesh(Mesh* mesh, bool enableLight);
 	void RenderSkybox();
+	void RenderPhoneUI();
 	void RenderText(Mesh* mesh, std::string text, Color color);
 
 	//use screen points
-	void RenderTextOnScreen(Mesh* mesh, std::string text, Color color, float size, float x, float y);
-	void RenderImageOnScreen(Mesh* mesh, Color color, float sizex = 1, float sizey = 1, float x = 0, float y = 0);
+	void RenderTextOnScreen(Mesh* mesh, std::string text, Color color, float size = 1, float x = 0, float y = 0, float xRotation = 0, float zRotation = 0);
+	void RenderImageOnScreen(Mesh* mesh, Color color, float sizex = 1, float sizey = 1, float x = 0, float y = 0, float xRotation = 0, float zRotation = 0);
 	std::vector<float> getNumberValues(std::string filename);
 	std::vector<float> fontData;
+	double xpos, ypos;
 
 	bool enableLight;
+	bool keyToggle;
+	bool mouseToggle;
+
+	//in-game stuff
+	Clock* clock;
+	player* Player;
+	Phone* phone;
+	std::string clockTime = "";
+	int money = int(DEFAULTMONEY), socialMeter = int(DEFAULTSOCIALMETER);
+
+	//phone ??
+	PhoneScreen phoneState;
+	int taskCount, chatCount;
+	bool isPhoneOpen;
+	bool hoverAnimation[9] = { false, false, false, false, false, false, false, false, false };
+	//general counter
+	int pageCounter;
 };
 
 
