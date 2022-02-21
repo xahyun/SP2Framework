@@ -2,18 +2,20 @@
 #include "Application.h"
 #include "Mtx44.h"
 #include "GL\glew.h"
-#include <ostream>
+#include <iostream>
 
 #include "shader.hpp"
 #include "Utility.h"
 #include <vector>
 #include <fstream>
 #include <sstream>
+#include "clock.h"
 
 
 SceneHome::SceneHome()
 {
 	fontData = getNumberValues("Image//Fonts//FontData.csv");
+	phoneState = P_PHONEOFF; pageCounter = 0; goNextScene = false;
 }
 
 SceneHome::~SceneHome()
@@ -125,7 +127,7 @@ void SceneHome::Init()
 		glUniform1f(m_parameters[U_LIGHT1_EXPONENT], light[1].exponent);
 	}
 
-	camera.Init(Vector3(0, 15, 0), Vector3(1, 1, 1), Vector3(0, 1, 0));
+	camera.Init(Vector3(0, 15, 0), Vector3(0, 10, -10), Vector3(0, 1, 0));
 
 	Mesh::SetMaterialLoc(m_parameters[U_MATERIAL_AMBIENT], m_parameters[U_MATERIAL_DIFFUSE], m_parameters[U_MATERIAL_SPECULAR], m_parameters[U_MATERIAL_SHININESS]);
 
@@ -155,11 +157,11 @@ void SceneHome::Init()
 		meshList[GEO_RIGHT]->textureID = LoadTGA("Image//ICA2Skybox//Right.tga");
 	}
 
-	//home
+	//home items
 	{
 		meshList[GEO_WALL] = MeshBuilder::GenerateOBJMTL("Wall", "OBJ//furniture//wall.obj", "OBJ//furniture//wall.mtl");
 
-		meshList[GEO_HOMEFLOOR] = MeshBuilder::GenerateOfficefloor("quad", Color(1, 1, 0), 1.f);
+		meshList[GEO_HOMEFLOOR] = MeshBuilder::GenerateQuad("quad", Color(0.6f, 0.3f, 0.3f), 1.f, 1.f, 5);
 		meshList[GEO_HOMEFLOOR]->textureID = LoadTGA("Image//Home//Woodfloor.tga");
 		meshList[GEO_HOMEFLOOR]->material.kAmbient.Set(0.3f, 0.3f, 0.3f);
 		meshList[GEO_HOMEFLOOR]->material.kDiffuse.Set(0.3f, 0.3f, 0.3f);
@@ -183,33 +185,91 @@ void SceneHome::Init()
 		meshList[GEO_RUG2] = MeshBuilder::GenerateOBJMTL("squarerug", "OBJ//furniture//rugSquare.obj", "OBJ//furniture//rugSquare.mtl");
 		meshList[GEO_BENCH] = MeshBuilder::GenerateOBJMTL("bench", "OBJ//furniture//benchCushionLow.obj", "OBJ//furniture//benchCushionLow.mtl");
 		meshList[GEO_COATRACK] = MeshBuilder::GenerateOBJMTL("coatrack", "OBJ//furniture//coatRack.obj", "OBJ//furniture//coatRack.mtl");
-
-
-
-
-
-
 	}
 
-
 	//others
-	meshList[GEO_TEMP_QUAD] = MeshBuilder::GenerateSphere("sphere", Color(1, 0, 0), 1);
+	meshList[GEO_TEMP_QUAD] = MeshBuilder::GenerateQuad("Diag", Color(1, 1, 1), 1, 1.5, 1);
+	meshList[GEO_TEMP_QUAD]->textureID = LoadTGA("Image//cursor.tga");
 
 	meshList[GEO_TEXT] = MeshBuilder::GenerateText("text", 16, 16);
-	meshList[GEO_TEXT]->textureID = LoadTGA("Image//fonts//ArialRegularBoldItalic.tga");
+	meshList[GEO_TEXT]->textureID = LoadTGA("Image//fonts//SegoeUI.tga");
 	meshList[GEO_DIALOG_BOX] = MeshBuilder::GenerateQuad("Diag", Color(1, 1, 1), 80, 30, 1);
 	meshList[GEO_DIALOG_BOX]->textureID = LoadTGA("Image//dialogBox.tga");
+
+	meshList[GEO_WATCH] = MeshBuilder::GenerateQuad("watch", Color(1, 1, 1), 1, 1, 1);
+	meshList[GEO_WATCH]->textureID = LoadTGA("Image//watchInterface.tga");
+
+	//phone UI
+	{
+		meshList[GEO_NOTIF_BOX] = MeshBuilder::GenerateQuad("notifBox", Color(1, 1, 1), 1, 1, 1);
+		meshList[GEO_NOTIF_BOX]->textureID = LoadTGA("Image//phoneUI//notif_box.tga");
+		meshList[GEO_PHONE_ICON] = MeshBuilder::GenerateQuad("phoneIcon", Color(1, 1, 1), 1, 1, 1);
+		meshList[GEO_PHONE_ICON]->textureID = LoadTGA("Image//phoneUI//phoneIcon.tga");
+		meshList[GEO_PHONE_UI] = MeshBuilder::GenerateQuad("outsideBox", Color(1, 1, 1), 1, 1, 1);
+		meshList[GEO_PHONE_UI]->textureID = LoadTGA("Image//phoneUI//outside box.tga");
+		meshList[GEO_HOME_ICON] = MeshBuilder::GenerateQuad("home", Color(1, 1, 1), 1, 1, 1);
+		meshList[GEO_HOME_ICON]->textureID = LoadTGA("Image//phoneUI//home_icon.tga");
+		meshList[GEO_CHAT_ICON] = MeshBuilder::GenerateQuad("chat", Color(1, 1, 1), 1, 1, 1);
+		meshList[GEO_CHAT_ICON]->textureID = LoadTGA("Image//phoneUI//chat_icon.tga");
+		meshList[GEO_TASKS_ICON] = MeshBuilder::GenerateQuad("tasks", Color(1, 1, 1), 1, 1, 1);
+		meshList[GEO_TASKS_ICON]->textureID = LoadTGA("Image//phoneUI//tasks_icon.tga");
+		meshList[GEO_MONEY_ICON] = MeshBuilder::GenerateQuad("outsideBox", Color(1, 1, 1), 1, 1, 1);
+		meshList[GEO_MONEY_ICON]->textureID = LoadTGA("Image//phoneUI//money_icon.tga");
+		meshList[GEO_SOCIALSCORE_ICON] = MeshBuilder::GenerateQuad("outsideBox", Color(1, 1, 1), 1, 1, 1);
+		meshList[GEO_SOCIALSCORE_ICON]->textureID = LoadTGA("Image//phoneUI//ss_icon.tga");
+		meshList[GEO_SOCIALSCORE_UI] = MeshBuilder::GenerateQuad("socialScoreUI", Color(1, 1, 1), 1, 1, 1);
+		meshList[GEO_SOCIALSCORE_UI]->textureID = LoadTGA("Image//phoneUI//socialScore_UI.tga");
+		meshList[GEO_SOCIALSCORE_BAR] = MeshBuilder::GenerateQuad("socialScoreUI", Color(1, 1, 1), 1, 1, 1);
+		meshList[GEO_SOCIALSCORE_BAR]->textureID = LoadTGA("Image//phoneUI//socialScore_bar.tga");
+		meshList[GEO_HELP_ICON] = MeshBuilder::GenerateQuad("help", Color(1, 1, 1), 1, 1, 1);
+		meshList[GEO_HELP_ICON]->textureID = LoadTGA("Image//phoneUI//help_icon.tga");
+	}
 
 	Mtx44 projection;
 	projection.SetToPerspective(45.f, 4.f / 3.f, 0.1f, 1000.f);
 	projectionStack.LoadMatrix(projection);
 }
 
+void SceneHome::TransferGameInfo(Game* game)
+{
+	this->clock = game->gameClock;
+	this->Player = game->gamePlayer;
+	this->phone = game->playerPhone;
+}
+
 
 void SceneHome::Update(double dt)
 {
-	camera.Update(static_cast<float>(dt));
+	std::cout << phone->taskList.size() << "\n";
+	if (taskNumber < phone->taskList.size()) {
+		NotificationTimer = 5;
+		taskNumber = phone->taskList.size();
+		notifs = N_TASK;
+	}
 
+	if (NotificationTimer > 0) {
+		//TODO: add animation
+		NotificationTimer -= static_cast<float>(dt);
+	}
+	else {
+		notifs = N_OFF;
+	}
+
+	if (!hasReceivedTasks && NotificationTimer <= 0) {
+		phone->addTaskToList("Go To Work");
+		phone->addTaskToList("Buy present");
+		hasReceivedTasks = true;
+	}
+
+	camera.Update(static_cast<float>(dt));
+	Application::getCursorPosition(xpos, ypos);
+	Application::worldSpaceToScreenSpace(xpos, ypos);
+	Application::hideCursorWhenInScreen();
+
+	clock->UpdateClock(dt);
+	phone->Update(float(dt));
+	socialMeter = static_cast<int>(Player->getSocialMeter());
+	money = static_cast<int>(Player->getMoney());
 
 	//debug controls xx
 	{
@@ -233,21 +293,124 @@ void SceneHome::Update(double dt)
 		if (Application::IsKeyPressed('6')) {
 			enableLight = true;
 		}
-
-		//if (Application::IsKeyPressed('I'))
-		//	light[1].position.z -= (float)(6 * dt);
-		//if (Application::IsKeyPressed('K'))
-		//	light[1].position.z += (float)(6 * dt);
-		//if (Application::IsKeyPressed('J'))
-		//	light[1].position.x -= (float)(6 * dt);
-		//if (Application::IsKeyPressed('L'))
-		//	light[1].position.x += (float)(6 * dt);
-		//if (Application::IsKeyPressed('O'))
-		//	light[1].position.y -= (float)(6 * dt);
-		//if (Application::IsKeyPressed('P'))
-		//	light[1].position.y += (float)(6 * dt);
 	}
 
+	clockTime = clock->getHourMinute();
+	if (!Application::isMouseButtonPressed(0) && !Application::isMouseButtonPressed(1) && !Application::isMouseButtonPressed(2)) {
+		mouseToggle = true;
+	}
+
+	distanceFromDoor = camera.position.Distance(Vector3(44, camera.position.y, 98));
+	angleFromDoor = camera.angleDifference(Vector3(44, camera.position.y, 98));
+
+	if (distanceFromDoor < 20 && -30 < angleFromDoor && -50 < angleFromDoor && mouseToggle && Application::isMouseButtonPressed(0)) {
+		mouseToggle = false;
+		goNextScene = true;
+	}
+
+	if (isPhoneOpen) {
+		camera.canLookAround = false;
+		camera.canMove = false;
+	}
+	else {
+		camera.canLookAround = true;
+		camera.canMove = true;
+	}
+
+	//phone hover animation to make things more pussy popping
+	if (!isPhoneOpen) {
+		if (65 <= xpos && xpos <= 75 && 45 <= ypos && ypos <= 55 && mouseToggle && Application::isMouseButtonPressed(0)) {
+			mouseToggle = false;
+			isPhoneOpen = true;
+			phoneState = P_HOME;
+		}
+
+		if (65 <= xpos && xpos <= 75 && 45 <= ypos && ypos <= 55) { hoverAnimation[2] = true; }
+		else { hoverAnimation[2] = false; }
+
+		if (0 <= xpos && xpos <= 15 && 0 <= ypos && ypos <= 15) { hoverAnimation[0] = true; camera.canLookAround = false; }
+		else { hoverAnimation[0] = false; camera.canLookAround = true; }
+	}
+	else {
+		if (35 <= xpos && xpos <= 45 && 38 <= ypos && ypos <= 48) { hoverAnimation[1] = true; }
+		else { hoverAnimation[1] = false; }
+		if (35 <= xpos && xpos <= 45 && 28 <= ypos && ypos <= 38) { hoverAnimation[8] = true; }
+		else { hoverAnimation[8] = false; }
+
+		if (35 <= xpos && xpos <= 45 && 38 <= ypos && ypos <= 48 && mouseToggle && Application::isMouseButtonPressed(0)) {
+			mouseToggle = false;
+			isPhoneOpen = false;
+			phoneState = P_PHONEOFF;
+		}
+
+		if (phoneState != P_HOME) {
+			if (35 <= xpos && xpos <= 45 && 28 <= ypos && ypos <= 38 && mouseToggle && Application::isMouseButtonPressed(0)) {
+				mouseToggle = false;
+				phoneState = P_HOME;
+			}
+		}
+
+		switch (phoneState)
+		{
+		case SceneHome::P_HOME:
+			//hover animation
+			if (50 < xpos && xpos < 60 && 30 < ypos && ypos < 40) { hoverAnimation[3] = true; }
+			else { hoverAnimation[3] = false; }
+			if (60 < xpos && xpos < 70 && 30 < ypos && ypos < 40) { hoverAnimation[4] = true; }
+			else { hoverAnimation[4] = false; }
+			if (50 < xpos && xpos < 60 && 20 < ypos && ypos < 30) { hoverAnimation[5] = true; }
+			else { hoverAnimation[5] = false; }
+			if (60 < xpos && xpos < 70 && 20 < ypos && ypos < 30) { hoverAnimation[6] = true; }
+			else { hoverAnimation[6] = false; }
+			if (50 < xpos && xpos < 60 && 10 < ypos && ypos < 20) { hoverAnimation[7] = true; }
+			else { hoverAnimation[7] = false; }
+
+			//mouse press things <3
+			if (50 < xpos && xpos < 60 && 30 < ypos && ypos < 40 && mouseToggle && Application::isMouseButtonPressed(0)) {
+				mouseToggle = false;
+				phoneState = P_CHATLIST;
+			}
+			if (60 < xpos && xpos < 70 && 30 < ypos && ypos < 40 && mouseToggle && Application::isMouseButtonPressed(0)) {
+				mouseToggle = false;
+				pageCounter = 0;
+				phoneState = P_TASKS;
+			}
+			if (50 < xpos && xpos < 60 && 20 < ypos && ypos < 30 && mouseToggle && Application::isMouseButtonPressed(0)) {
+				mouseToggle = false;
+				phoneState = P_MONEY;
+			}
+			if (60 < xpos && xpos < 70 && 20 < ypos && ypos < 30 && mouseToggle && Application::isMouseButtonPressed(0)) {
+				mouseToggle = false;
+				phoneState = P_SOCIALSCORE;
+			}
+			break;
+		case SceneHome::P_CHAT:
+			break;
+		case SceneHome::P_CHATLIST:
+			break;
+		case SceneHome::P_MONEY:
+			break;
+		case SceneHome::P_SOCIALSCORE:
+			break;
+		case SceneHome::P_HELP:
+			break;
+		case SceneHome::P_TASKS:
+			if (56 < xpos && xpos < 60 && 31 < ypos && ypos < 35 && mouseToggle && Application::isMouseButtonPressed(0)) {
+				mouseToggle = false;
+				if (pageCounter > 0) {
+					pageCounter--;
+				}
+			}
+			if (56 < xpos && xpos < 60 && 11 < ypos && ypos < 15 && mouseToggle && Application::isMouseButtonPressed(0)) {
+				mouseToggle = false;
+				if (unsigned(pageCounter) < phone->taskList.size() - 5) {
+					pageCounter++;
+				}
+			}
+			break;
+		}
+	}
+	
 }
 
 
@@ -271,11 +434,303 @@ void SceneHome::Render()
 	{
 		RenderMesh(meshList[GEO_AXES], false);
 		RenderSkybox();
-		RenderHome();
 	}
 
-}
+	//render home scene
+	{
+		//WALLS
+		modelStack.PushMatrix();
+		modelStack.Translate(100, 0, 100);
+		modelStack.Scale(300, 50, 300);
+		RenderMesh(meshList[GEO_WALL], true);
+		modelStack.PopMatrix();
 
+		modelStack.PushMatrix();
+		modelStack.Translate(100, 0, -80);
+		/*modelStack.Rotate(90, 1, 0, 0);*/
+		modelStack.Scale(300, 50, 300);
+		RenderMesh(meshList[GEO_WALL], true);
+		modelStack.PopMatrix();
+
+		modelStack.PushMatrix();
+		modelStack.Translate(65, 0, -100);
+		modelStack.Rotate(90, 0, 1, 0);
+		modelStack.Scale(300, 50, 300);
+		RenderMesh(meshList[GEO_WALL], true);
+		modelStack.PopMatrix();
+
+		modelStack.PushMatrix();
+		modelStack.Translate(-80, 0, -100);
+		modelStack.Rotate(90, 0, 1, 0);
+		modelStack.Scale(300, 50, 300);
+		RenderMesh(meshList[GEO_WALL], true);
+		modelStack.PopMatrix();
+
+		modelStack.PushMatrix();
+		modelStack.Translate(300, 170, -300);
+		modelStack.Rotate(90, 1, 0, 0);
+		modelStack.Scale(1500, 1500, 1500);
+		RenderMesh(meshList[GEO_WALL], true);
+		modelStack.PopMatrix();
+
+
+		//FLOOR
+		modelStack.PushMatrix();
+		modelStack.Rotate(-90, 1, 0, 0);
+		modelStack.Scale(200, 200, 200);
+		RenderMesh(meshList[GEO_HOMEFLOOR], false);
+		modelStack.PopMatrix();
+
+		//bed
+		{
+			modelStack.PushMatrix();
+			modelStack.Translate(50, 0, 98);
+			modelStack.Scale(30, 30, 30);
+			RenderMesh(meshList[GEO_HOMEDOOR], true);
+			modelStack.PopMatrix();
+
+			modelStack.PushMatrix();
+			modelStack.Translate(-10, 0, 100);
+			modelStack.Rotate(-90, 0, 1, 0);
+			modelStack.Scale(100, 100, 100);
+			RenderMesh(meshList[GEO_PLATFORM], true);
+			modelStack.PopMatrix();
+
+			modelStack.PushMatrix();
+			modelStack.Translate(-35, 5, 65);
+			//modelStack.Rotate(-90, 0, 1, 0);
+			modelStack.Scale(30, 30, 30);
+			RenderMesh(meshList[GEO_BED], true);
+			modelStack.PopMatrix();
+
+			modelStack.PushMatrix();
+			modelStack.Translate(-24, 5, 92);
+			//modelStack.Rotate(-90, 0, 1, 0);
+			modelStack.Scale(30, 30, 30);
+			RenderMesh(meshList[GEO_SIDETABLE], true);
+			modelStack.PopMatrix();
+
+
+
+		}
+
+		//lounge area
+		{
+			modelStack.PushMatrix();
+			modelStack.Translate(-24, 0, -15);
+			//modelStack.Rotate(-90, 0, 1, 0);
+			modelStack.Scale(30, 30, 30);
+			RenderMesh(meshList[GEO_SOFA], true);
+			modelStack.PopMatrix();
+
+			modelStack.PushMatrix();
+			modelStack.Translate(-55, 0, -55);
+			modelStack.Rotate(-180, 0, 1, 0);
+			modelStack.Scale(40, 30, 40);
+			RenderMesh(meshList[GEO_TVTABLE], true);
+			modelStack.PopMatrix();
+
+			modelStack.PushMatrix();
+			modelStack.Translate(-39, 10, -55);
+			modelStack.Rotate(-180, 0, 1, 0);
+			modelStack.Scale(30, 30, 30);
+			RenderMesh(meshList[GEO_TV], true);
+			modelStack.PopMatrix();
+
+			modelStack.PushMatrix();
+			modelStack.Translate(-60, 0, -5);
+			modelStack.Rotate(-180, 0, 1, 0);
+			modelStack.Scale(50, 50, 50);
+			RenderMesh(meshList[GEO_RUG], true);
+			modelStack.PopMatrix();
+
+			modelStack.PushMatrix();
+			modelStack.Translate(-43, 0, -30);
+			//modelStack.Rotate(-180, 0, 1, 0);
+			modelStack.Scale(30, 30, 30);
+			RenderMesh(meshList[GEO_COFFEETABLE], true);
+			modelStack.PopMatrix();
+
+			modelStack.PushMatrix();
+			modelStack.Translate(-20, 0, -10);
+			//modelStack.Rotate(-180, 0, 1, 0);
+			modelStack.Scale(30, 30, 30);
+			RenderMesh(meshList[GEO_FLOORLAMP], true);
+			modelStack.PopMatrix();
+
+		}
+
+		//study corner
+		{
+			modelStack.PushMatrix();
+			modelStack.Translate(40, 0, -50);
+			modelStack.Rotate(130, 0, 1, 0);
+			modelStack.Scale(30, 30, 30);
+			RenderMesh(meshList[GEO_LOUNGECHAIR], true);
+			modelStack.PopMatrix();
+
+			modelStack.PushMatrix();
+			modelStack.Translate(30, 0, -55);
+			modelStack.Rotate(-180, 0, 1, 0);
+			modelStack.Scale(30, 30, 30);
+			RenderMesh(meshList[GEO_BOOKCASE], true);
+			modelStack.PopMatrix();
+
+			modelStack.PushMatrix();
+			modelStack.Translate(20, 0, -55);
+			modelStack.Rotate(-180, 0, 1, 0);
+			modelStack.Scale(30, 30, 30);
+			RenderMesh(meshList[GEO_BOOKCASE], true);
+			modelStack.PopMatrix();
+
+			modelStack.PushMatrix();
+			modelStack.Translate(55, 0, -40);
+			modelStack.Rotate(90, 0, 1, 0);
+			modelStack.Scale(30, 30, 30);
+			RenderMesh(meshList[GEO_BOOKCASE], true);
+			modelStack.PopMatrix();
+
+			modelStack.PushMatrix();
+			modelStack.Translate(55, 0, -30);
+			modelStack.Rotate(90, 0, 1, 0);
+			modelStack.Scale(30, 30, 30);
+			RenderMesh(meshList[GEO_BOOKCASE], true);
+			modelStack.PopMatrix();
+
+			modelStack.PushMatrix();
+			modelStack.Translate(56, 11, -24);
+			modelStack.Rotate(90, 0, 1, 0);
+			modelStack.Scale(30, 30, 30);
+			RenderMesh(meshList[GEO_BOOKS], true);
+			modelStack.PopMatrix();
+
+
+			modelStack.PushMatrix();
+			modelStack.Translate(56, 18, -28);
+			modelStack.Rotate(90, 0, 1, 0);
+			modelStack.Scale(30, 30, 30);
+			RenderMesh(meshList[GEO_BOOKS], true);
+			modelStack.PopMatrix();
+
+			modelStack.PushMatrix();
+			modelStack.Translate(56, 4, -35);
+			modelStack.Rotate(90, 0, 1, 0);
+			modelStack.Scale(30, 30, 30);
+			RenderMesh(meshList[GEO_BOOKS], true);
+			modelStack.PopMatrix();
+
+
+			modelStack.PushMatrix();
+			modelStack.Translate(33, 18, -57);
+			modelStack.Rotate(-180, 0, 1, 0);
+			modelStack.Scale(30, 30, 30);
+			RenderMesh(meshList[GEO_PLANT2], true);
+			modelStack.PopMatrix();
+
+			modelStack.PushMatrix();
+			modelStack.Translate(35, 18, -57);
+			modelStack.Rotate(-180, 0, 1, 0);
+			modelStack.Scale(30, 30, 30);
+			RenderMesh(meshList[GEO_BOOKS], true);
+			modelStack.PopMatrix();
+
+			modelStack.PushMatrix();
+			modelStack.Translate(33, 11, -57);
+			modelStack.Rotate(-180, 0, 1, 0);
+			modelStack.Scale(30, 30, 30);
+			RenderMesh(meshList[GEO_BOOKS], true);
+			modelStack.PopMatrix();
+
+			modelStack.PushMatrix();
+			modelStack.Translate(36, 4, -57);
+			modelStack.Rotate(-180, 0, 1, 0);
+			modelStack.Scale(30, 30, 30);
+			RenderMesh(meshList[GEO_BOOKS], true);
+			modelStack.PopMatrix();
+
+			modelStack.PushMatrix();
+			modelStack.Translate(31, 4, -57);
+			modelStack.Rotate(-180, 0, 1, 0);
+			modelStack.Scale(30, 30, 30);
+			RenderMesh(meshList[GEO_BOOKS], true);
+			modelStack.PopMatrix();
+
+
+			modelStack.PushMatrix();
+			modelStack.Translate(25, 18, -57);
+			modelStack.Rotate(-180, 0, 1, 0);
+			modelStack.Scale(30, 30, 30);
+			RenderMesh(meshList[GEO_BOOKS], true);
+			modelStack.PopMatrix();
+
+			modelStack.PushMatrix();
+			modelStack.Translate(21, 11, -57);
+			modelStack.Rotate(-180, 0, 1, 0);
+			modelStack.Scale(30, 30, 30);
+			RenderMesh(meshList[GEO_BOOKS], true);
+			modelStack.PopMatrix();
+
+			modelStack.PushMatrix();
+			modelStack.Translate(23, 4, -57);
+			modelStack.Rotate(-180, 0, 1, 0);
+			modelStack.Scale(30, 30, 30);
+			RenderMesh(meshList[GEO_BOOKS], true);
+			modelStack.PopMatrix();
+
+			modelStack.PushMatrix();
+			modelStack.Translate(19, 0, -20);
+			modelStack.Rotate(-180, 0, 1, 0);
+			modelStack.Scale(50, 50, 50);
+			RenderMesh(meshList[GEO_RUG2], true);
+			modelStack.PopMatrix();
+
+
+			modelStack.PushMatrix();
+			modelStack.Translate(55, 0, 50);
+			modelStack.Rotate(90, 0, 1, 0);
+			modelStack.Scale(60, 40, 60);
+			RenderMesh(meshList[GEO_BENCH], true);
+			modelStack.PopMatrix();
+
+			modelStack.PushMatrix();
+			modelStack.Translate(55, 20, 50);
+			modelStack.Rotate(90, 0, 1, 0);
+			modelStack.Scale(50, 30, 50);
+			RenderMesh(meshList[GEO_COATRACK], true);
+			modelStack.PopMatrix();
+
+		}
+	}
+
+	//regular game UI
+	if (!isPhoneOpen) {
+		if (hoverAnimation[2]) { RenderImageOnScreen(meshList[GEO_PHONE_ICON], Color(1, 1, 1), 9, 9, 70, 50, 0, 20); }
+		else { RenderImageOnScreen(meshList[GEO_PHONE_ICON], Color(1, 1, 1), 8, 8, 70, 50, 0, 0); }
+
+		if (hoverAnimation[0]) { RenderImageOnScreen(meshList[GEO_WATCH], Color(1, 1, 1), 30, 40, 10, 10, 0, 180); }
+		else { RenderImageOnScreen(meshList[GEO_WATCH], Color(1, 1, 1), 30, 40, 8, 6, 0, 215); }
+
+		//render last because it needs to be top
+		if (hoverAnimation[0]) { RenderTextOnScreen(meshList[GEO_TEXT], clockTime, Color(1, 1, 1), 5, 4, 7); }
+		else { RenderTextOnScreen(meshList[GEO_TEXT], clockTime, Color(1, 1, 1), 5, 5, 0, 0, 35); }
+
+	}
+	else {
+		RenderPhoneUI();
+	}
+
+	//notification
+	if (notifs != N_OFF) {
+		RenderNotifications();
+	}
+
+	//render cursor last because it has to show up on top
+	{
+		modelStack.PushMatrix();
+		RenderImageOnScreen(meshList[GEO_TEMP_QUAD], Color(1, 1, 1), 5, 5, static_cast<float>(xpos), static_cast<float>(ypos - 3), 0, 180);
+		modelStack.PopMatrix();
+	}
+}
 
 void SceneHome::Exit()
 {
@@ -383,6 +838,147 @@ void SceneHome::RenderSkybox()
 	modelStack.PopMatrix();
 }
 
+void SceneHome::RenderPhoneUI()
+{
+	RenderImageOnScreen(meshList[GEO_PHONE_UI], Color(1, 1, 1), 30, 45, 60, 28);
+
+	if (hoverAnimation[1]) { RenderImageOnScreen(meshList[GEO_PHONE_ICON], Color(1, 1, 1), 9, 9, 40, 43, 0, 20); }
+	else { RenderImageOnScreen(meshList[GEO_PHONE_ICON], Color(1, 1, 1), 8, 8, 40, 43); }
+
+	if (phoneState != P_HOME) {
+		if (hoverAnimation[8]) { RenderImageOnScreen(meshList[GEO_HOME_ICON], Color(1, 1, 1), 9, 9, 40, 33, 0, 20); }
+		else { RenderImageOnScreen(meshList[GEO_HOME_ICON], Color(1, 1, 1), 8, 8, 40, 33); }
+	}
+
+	switch (phoneState)
+	{
+	case SceneHome::P_HOME:
+		if (hoverAnimation[3]) { RenderImageOnScreen(meshList[GEO_CHAT_ICON], Color(1, 1, 1), 9, 9, 55, 35, 0, 20); }
+		else { RenderImageOnScreen(meshList[GEO_CHAT_ICON], Color(1, 1, 1), 8, 8, 55, 35, 0, 0); }
+		if (hoverAnimation[4]) { RenderImageOnScreen(meshList[GEO_TASKS_ICON], Color(1, 1, 1), 9, 9, 65, 35, 0, 20); }
+		else { RenderImageOnScreen(meshList[GEO_TASKS_ICON], Color(1, 1, 1), 8, 8, 65, 35, 0, 0); }
+		if (hoverAnimation[5]) { RenderImageOnScreen(meshList[GEO_MONEY_ICON], Color(1, 1, 1), 9, 9, 55, 25, 0, 20); }
+		else { RenderImageOnScreen(meshList[GEO_MONEY_ICON], Color(1, 1, 1), 8, 8, 55, 25, 0, 0); }
+		if (hoverAnimation[6]) { RenderImageOnScreen(meshList[GEO_SOCIALSCORE_ICON], Color(1, 1, 1), 9, 9, 65, 25, 0, 20); }
+		else { RenderImageOnScreen(meshList[GEO_SOCIALSCORE_ICON], Color(1, 1, 1), 8, 8, 65, 25, 0, 0); }
+		if (hoverAnimation[7]) { RenderImageOnScreen(meshList[GEO_HELP_ICON], Color(1, 1, 1), 9, 9, 55, 15, 0, 20); }
+		else { RenderImageOnScreen(meshList[GEO_HELP_ICON], Color(1, 1, 1), 8, 8, 55, 15, 0, 0); }
+
+		RenderTextOnScreen(meshList[GEO_TEXT], "my phone <3", Color(0.6f, 0.3f, 0.3f), 3, 52, 41);
+		break;
+
+	case SceneHome::P_CHATLIST:
+		break;
+
+	case SceneHome::P_MONEY:
+		RenderTextOnScreen(meshList[GEO_TEXT], "TY-RA Bank", Color(0.6f, 0.3f, 0.3f), 4, 50, 40);
+		RenderTextOnScreen(meshList[GEO_TEXT], "Account Balance:", Color(0.6f, 0.3f, 0.3f), 3, 49, 37);
+		if (money > 5000) { RenderTextOnScreen(meshList[GEO_TEXT], "$ " + std::to_string(money), Color(0.3f, 0.7f, 0.3f), 5, 52, 30); }
+		else if (money < 0) { RenderTextOnScreen(meshList[GEO_TEXT], "-$ " + std::to_string(abs(money)), Color(0.7f, 0.3f, 0.3f), 5, 52, 30); }
+		else { RenderTextOnScreen(meshList[GEO_TEXT], "$ " + std::to_string(money), Color(0.7f, 0.7f, 0.4f), 5, 52, 30); }
+		
+		RenderTextOnScreen(meshList[GEO_TEXT], "Bank Rating:", Color(0.6f, 0.3f, 0.3f), 4, 49, 21);
+		if (money > 20000) { 
+			RenderTextOnScreen(meshList[GEO_TEXT], "Splendid!", Color(0.7f, 0.7f, 0.7f), 3, 52, 17);
+			RenderTextOnScreen(meshList[GEO_TEXT], "Here is a", Color(0.3f, 0.3f, 0.3f), 3, 52, 14);
+			RenderTextOnScreen(meshList[GEO_TEXT], "medal :)", Color(0.3f, 0.3f, 0.3f), 3, 52, 11);
+		}
+		else if (money > 9000) { 
+			RenderTextOnScreen(meshList[GEO_TEXT], "Model citizen!", Color(0.3f, 0.7f, 0.3f), 3, 52, 17);
+			RenderTextOnScreen(meshList[GEO_TEXT], "Keep it up!", Color(0.3f, 0.3f, 0.3f), 3, 52, 14);
+		}
+		else if (money > 5000) {
+			RenderTextOnScreen(meshList[GEO_TEXT], "Meh.", Color(0.3f, 0.3f, 0.3f), 3, 52, 17);
+			RenderTextOnScreen(meshList[GEO_TEXT], "you're doing...", Color(0.3f, 0.3f, 0.3f), 3, 52, 14);
+			RenderTextOnScreen(meshList[GEO_TEXT], "fine, I guess.", Color(0.3f, 0.3f, 0.3f), 3, 52, 11);
+		}
+		else if (money < -1000) {
+			RenderTextOnScreen(meshList[GEO_TEXT], "In debt", Color(0.7f, 0.3f, 0.3f), 3, 52, 17);
+			RenderTextOnScreen(meshList[GEO_TEXT], "please be more", Color(0.3f, 0.3f, 0.3f), 3, 52, 14);
+			RenderTextOnScreen(meshList[GEO_TEXT], "careful.", Color(0.3f, 0.3f, 0.3f), 3, 52, 11);
+		}
+		else { 
+			RenderTextOnScreen(meshList[GEO_TEXT], "Mediocre.", Color(0.7f, 0.7f, 0.3f), 3, 52, 17);
+			RenderTextOnScreen(meshList[GEO_TEXT], "Do better.", Color(0.3f, 0.3f, 0.3f), 3, 52, 14);
+		}
+		break;
+
+	case SceneHome::P_SOCIALSCORE:
+		RenderImageOnScreen(meshList[GEO_SOCIALSCORE_BAR], Color(1, 1, 1), (16 * (static_cast<float>(socialMeter)/100)), 10, (52 + (8 * (static_cast<float>(socialMeter) / 100))), 35);
+		RenderImageOnScreen(meshList[GEO_SOCIALSCORE_UI], Color(1, 1, 1), 20, 20, 60, 30);
+
+		RenderTextOnScreen(meshList[GEO_TEXT], "SOCIAL METER", Color(0.6f, 0.3f, 0.3f), 3, 50, 18);
+		break;
+
+	case SceneHome::P_HELP:
+		break;
+
+	case SceneHome::P_TASKS:
+		RenderTextOnScreen(meshList[GEO_TEXT], "TO DO: ", Color(0.6f, 0.3f, 0.3f), 4, 50, 40);
+		RenderTextOnScreen(meshList[GEO_TEXT], "^", Color(0.6f, 0.3f, 0.3f), 4, 58, 33);
+		RenderTextOnScreen(meshList[GEO_TEXT], "v", Color(0.6f, 0.3f, 0.3f), 4, 58, 13);
+		if (static_cast<int>(phone->taskList.size()) - 1 - pageCounter > 0) { 
+			if (!phone->taskList[static_cast<int>(phone->taskList.size()) - 1 - pageCounter].isCompleted) { RenderTextOnScreen(meshList[GEO_TEXT], "-", Color(0.6f, 0.3f, 0.3f), 3, 48, 30); RenderTextOnScreen(meshList[GEO_TEXT], phone->taskList[static_cast<int>(phone->taskList.size()) - 1 - pageCounter].taskName, Color(0.6f, 0.3f, 0.3f), 3, 50, 30); }
+			else {
+				RenderTextOnScreen(meshList[GEO_TEXT], "-", Color(0.5f, 0.5f, 0.5f), 3, 48, 30);
+				RenderTextOnScreen(meshList[GEO_TEXT], phone->taskList[phone->taskList.size() - 1 - int(pageCounter)].taskName, Color(0.5f, 0.5f, 0.5f), 3, 50, 30);
+			}
+		}
+		if (static_cast<int>(phone->taskList.size()) - 2 - pageCounter > 0) {
+			if (!phone->taskList[static_cast<int>(phone->taskList.size()) - 2 - pageCounter].isCompleted) { RenderTextOnScreen(meshList[GEO_TEXT], "-", Color(0.6f, 0.3f, 0.3f), 3, 48, 27); RenderTextOnScreen(meshList[GEO_TEXT], phone->taskList[static_cast<int>(phone->taskList.size()) - 2 - pageCounter].taskName, Color(0.6f, 0.3f, 0.3f), 3, 50, 27); }
+			else {
+				RenderTextOnScreen(meshList[GEO_TEXT], "-", Color(0.5f, 0.5f, 0.5f), 3, 48, 27);
+				RenderTextOnScreen(meshList[GEO_TEXT], phone->taskList[static_cast<int>(phone->taskList.size()) - 2 - pageCounter].taskName, Color(0.5f, 0.5f, 0.5f), 3, 50, 27);
+			}
+		}
+		if (static_cast<int>(phone->taskList.size()) - 3 - pageCounter > 0) {
+			if (!phone->taskList[static_cast<int>(phone->taskList.size()) - 3 - pageCounter].isCompleted) { RenderTextOnScreen(meshList[GEO_TEXT], "-", Color(0.6f, 0.3f, 0.3f), 3, 48, 24); RenderTextOnScreen(meshList[GEO_TEXT], phone->taskList[static_cast<int>(phone->taskList.size()) - 3 - pageCounter].taskName, Color(0.6f, 0.3f, 0.3f), 3, 50, 24); }
+			else {
+				RenderTextOnScreen(meshList[GEO_TEXT], "-", Color(0.5f, 0.5f, 0.5f), 3, 48, 24);
+				RenderTextOnScreen(meshList[GEO_TEXT], phone->taskList[static_cast<int>(phone->taskList.size()) - 3 - pageCounter].taskName, Color(0.5f, 0.5f, 0.5f), 3, 50, 24);
+			}
+		}
+		if (static_cast<int>(phone->taskList.size()) - 4 - pageCounter > 0) {
+			if (!phone->taskList[static_cast<int>(phone->taskList.size()) - 4 - pageCounter].isCompleted) { RenderTextOnScreen(meshList[GEO_TEXT], "-", Color(0.6f, 0.3f, 0.3f), 3, 48, 21); RenderTextOnScreen(meshList[GEO_TEXT], phone->taskList[static_cast<int>(phone->taskList.size()) - 4 - pageCounter].taskName, Color(0.6f, 0.3f, 0.3f), 3, 50, 21); }
+			else {
+				RenderTextOnScreen(meshList[GEO_TEXT], "-", Color(0.5f, 0.5f, 0.5f), 3, 48, 21);
+				RenderTextOnScreen(meshList[GEO_TEXT], phone->taskList[static_cast<int>(phone->taskList.size()) - 4 - pageCounter].taskName, Color(0.5f, 0.5f, 0.5f), 3, 50, 21);
+			}
+		}
+		if (static_cast<int>(phone->taskList.size()) - 5 - pageCounter > 0) {
+			if (!phone->taskList[static_cast<int>(phone->taskList.size()) - 5 - pageCounter].isCompleted) { RenderTextOnScreen(meshList[GEO_TEXT], "-", Color(0.6f, 0.3f, 0.3f), 3, 48, 18); RenderTextOnScreen(meshList[GEO_TEXT], phone->taskList[static_cast<int>(phone->taskList.size()) - 5 - pageCounter].taskName, Color(0.6f, 0.3f, 0.3f), 3, 50, 18); }
+			else {
+				RenderTextOnScreen(meshList[GEO_TEXT], "-", Color(0.5f, 0.5f, 0.5f), 3, 48, 18);
+				RenderTextOnScreen(meshList[GEO_TEXT], phone->taskList[static_cast<int>(phone->taskList.size()) - 5 - pageCounter].taskName, Color(0.5f, 0.5f, 0.5f), 3, 50, 18);
+			}
+		}
+
+		break;
+	}
+
+	RenderTextOnScreen(meshList[GEO_TEXT], clockTime, Color(0.6f, 0.3f, 0.3f), 3, 56, 44);
+}
+
+void SceneHome::RenderNotifications()
+{
+	RenderImageOnScreen(meshList[GEO_NOTIF_BOX], Color(1, 1, 1), 40, 12, 60, 7);
+	switch (notifs)
+	{
+	case SceneHome::N_CHAT:
+		break;
+	case SceneHome::N_TASK:
+		RenderImageOnScreen(meshList[GEO_TASKS_ICON], Color(1, 1, 1), 6, 6, 45, 7);
+		RenderTextOnScreen(meshList[GEO_TEXT], "New Task Available", Color(0.6f, 0.3f, 0.3f), 3, 49, 7);
+		RenderTextOnScreen(meshList[GEO_TEXT], "Check your phone for more details", Color(0.6f, 0.3f, 0.3f), 2
+			, 49, 5);
+		break;
+	case SceneHome::N_WORK:
+		break;
+	default:
+		break;
+	}
+}
+
 void SceneHome::RenderText(Mesh* mesh, std::string text, Color color)
 {
 	if (!mesh || mesh->textureID <= 0) //Proper error check
@@ -412,278 +1008,7 @@ void SceneHome::RenderText(Mesh* mesh, std::string text, Color color)
 	//glEnable(GL_DEPTH_TEST); //uncomment for RenderTextOnScreen
 }
 
-void SceneHome::RenderHome()
-{
-	//WALLS
-	modelStack.PushMatrix();
-	modelStack.Translate(100, 0, 100);
-	modelStack.Scale(300, 50, 300);
-	RenderMesh(meshList[GEO_WALL], true);
-	modelStack.PopMatrix();
-
-	modelStack.PushMatrix();
-	modelStack.Translate(100, 0, -80);
-	/*modelStack.Rotate(90, 1, 0, 0);*/
-	modelStack.Scale(300, 50, 300);
-	RenderMesh(meshList[GEO_WALL], true);
-	modelStack.PopMatrix();
-
-	modelStack.PushMatrix();
-	modelStack.Translate(65, 0, -100);
-	modelStack.Rotate(90, 0, 1, 0);
-	modelStack.Scale(300, 50, 300);
-	RenderMesh(meshList[GEO_WALL], true);
-	modelStack.PopMatrix();
-
-	modelStack.PushMatrix();
-	modelStack.Translate(-80, 0, -100);
-	modelStack.Rotate(90, 0, 1, 0);
-	modelStack.Scale(300, 50, 300);
-	RenderMesh(meshList[GEO_WALL], true);
-	modelStack.PopMatrix();
-
-	modelStack.PushMatrix();
-	modelStack.Translate(300, 170, -300);
-	modelStack.Rotate(90, 1, 0, 0);
-	modelStack.Scale(1500, 1500, 1500);
-	RenderMesh(meshList[GEO_WALL], true);
-	modelStack.PopMatrix();
-
-
-	//FLOOR
-	modelStack.PushMatrix();
-	modelStack.Rotate(-90, 1, 0, 0);
-	modelStack.Scale(200, 200, 200);
-	RenderMesh(meshList[GEO_HOMEFLOOR], false);
-	modelStack.PopMatrix();
-
-    //bed
-	{
-		modelStack.PushMatrix();
-		modelStack.Translate(50, 0, 98);
-		modelStack.Scale(30, 30, 30);
-		RenderMesh(meshList[GEO_HOMEDOOR], true);
-		modelStack.PopMatrix();
-
-
-
-		modelStack.PushMatrix();
-		modelStack.Translate(-10, 0, 100);
-		modelStack.Rotate(-90, 0, 1, 0);
-		modelStack.Scale(100, 100, 100);
-		RenderMesh(meshList[GEO_PLATFORM], true);
-		modelStack.PopMatrix();
-
-		modelStack.PushMatrix();
-		modelStack.Translate(-35, 5, 65);
-		//modelStack.Rotate(-90, 0, 1, 0);
-		modelStack.Scale(30, 30, 30);
-		RenderMesh(meshList[GEO_BED], true);
-		modelStack.PopMatrix();
-
-		modelStack.PushMatrix();
-		modelStack.Translate(-24, 5, 92);
-		//modelStack.Rotate(-90, 0, 1, 0);
-		modelStack.Scale(30, 30, 30);
-		RenderMesh(meshList[GEO_SIDETABLE], true);
-		modelStack.PopMatrix();
-
-
-
-	}
-
-	//lounge area
-	{
-		modelStack.PushMatrix();
-		modelStack.Translate(-24, 0, -15);
-		//modelStack.Rotate(-90, 0, 1, 0);
-		modelStack.Scale(30, 30, 30);
-		RenderMesh(meshList[GEO_SOFA], true);
-		modelStack.PopMatrix();
-
-		modelStack.PushMatrix();
-		modelStack.Translate(-55, 0, -55);
-		modelStack.Rotate(-180, 0, 1, 0);
-		modelStack.Scale(40, 30, 40);
-		RenderMesh(meshList[GEO_TVTABLE], true);
-		modelStack.PopMatrix();
-
-		modelStack.PushMatrix();
-		modelStack.Translate(-39, 10, -55);
-		modelStack.Rotate(-180, 0, 1, 0);
-		modelStack.Scale(30, 30, 30);
-		RenderMesh(meshList[GEO_TV], true);
-		modelStack.PopMatrix();
-
-		modelStack.PushMatrix();
-		modelStack.Translate(-60, 0, -5);
-		modelStack.Rotate(-180, 0, 1, 0);
-		modelStack.Scale(50, 50, 50);
-		RenderMesh(meshList[GEO_RUG], true);
-		modelStack.PopMatrix();
-
-		modelStack.PushMatrix();
-		modelStack.Translate(-43, 0, -30);
-		//modelStack.Rotate(-180, 0, 1, 0);
-		modelStack.Scale(30, 30, 30);
-		RenderMesh(meshList[GEO_COFFEETABLE], true);
-		modelStack.PopMatrix();
-
-		modelStack.PushMatrix();
-		modelStack.Translate(-20, 0, -10);
-		//modelStack.Rotate(-180, 0, 1, 0);
-		modelStack.Scale(30, 30, 30);
-		RenderMesh(meshList[GEO_FLOORLAMP], true);
-		modelStack.PopMatrix();
-
-	}
-
-	//study corner
-	{
-		modelStack.PushMatrix();
-		modelStack.Translate(40, 0, -50);
-		modelStack.Rotate(130, 0, 1, 0);
-		modelStack.Scale(30, 30, 30);
-		RenderMesh(meshList[GEO_LOUNGECHAIR], true);
-		modelStack.PopMatrix();
-
-		modelStack.PushMatrix();
-		modelStack.Translate(30, 0, -55);
-		modelStack.Rotate(-180, 0, 1, 0);
-		modelStack.Scale(30, 30, 30);
-		RenderMesh(meshList[GEO_BOOKCASE], true);
-		modelStack.PopMatrix();
-
-		modelStack.PushMatrix();
-		modelStack.Translate(20, 0, -55);
-		modelStack.Rotate(-180, 0, 1, 0);
-		modelStack.Scale(30, 30, 30);
-		RenderMesh(meshList[GEO_BOOKCASE], true);
-		modelStack.PopMatrix();
-
-		modelStack.PushMatrix();
-		modelStack.Translate(55, 0, -40);
-		modelStack.Rotate(90, 0, 1, 0);
-		modelStack.Scale(30, 30, 30);
-		RenderMesh(meshList[GEO_BOOKCASE], true);
-		modelStack.PopMatrix();
-
-		modelStack.PushMatrix();
-		modelStack.Translate(55, 0, -30);
-		modelStack.Rotate(90, 0, 1, 0);
-		modelStack.Scale(30, 30, 30);
-		RenderMesh(meshList[GEO_BOOKCASE], true);
-		modelStack.PopMatrix();
-
-		modelStack.PushMatrix();
-		modelStack.Translate(56, 11, -24);
-		modelStack.Rotate(90, 0, 1, 0);
-		modelStack.Scale(30, 30, 30);
-		RenderMesh(meshList[GEO_BOOKS], true);
-		modelStack.PopMatrix();
-
-
-		modelStack.PushMatrix();
-		modelStack.Translate(56, 18, -28);
-		modelStack.Rotate(90, 0, 1, 0);
-		modelStack.Scale(30, 30, 30);
-		RenderMesh(meshList[GEO_BOOKS], true);
-		modelStack.PopMatrix();
-
-		modelStack.PushMatrix();
-		modelStack.Translate(56, 4, -35);
-		modelStack.Rotate(90, 0, 1, 0);
-		modelStack.Scale(30, 30, 30);
-		RenderMesh(meshList[GEO_BOOKS], true);
-		modelStack.PopMatrix();
-
-
-		modelStack.PushMatrix();
-		modelStack.Translate(33, 18, -57);
-		modelStack.Rotate(-180, 0, 1, 0);
-		modelStack.Scale(30, 30, 30);
-		RenderMesh(meshList[GEO_PLANT2], true);
-		modelStack.PopMatrix();
-
-		modelStack.PushMatrix();
-		modelStack.Translate(35, 18, -57);
-		modelStack.Rotate(-180, 0, 1, 0);
-		modelStack.Scale(30, 30, 30);
-		RenderMesh(meshList[GEO_BOOKS], true);
-		modelStack.PopMatrix();
-
-		modelStack.PushMatrix();
-		modelStack.Translate(33, 11, -57);
-		modelStack.Rotate(-180, 0, 1, 0);
-		modelStack.Scale(30, 30, 30);
-		RenderMesh(meshList[GEO_BOOKS], true);
-		modelStack.PopMatrix();
-
-		modelStack.PushMatrix();
-		modelStack.Translate(36, 4, -57);
-		modelStack.Rotate(-180, 0, 1, 0);
-		modelStack.Scale(30, 30, 30);
-		RenderMesh(meshList[GEO_BOOKS], true);
-		modelStack.PopMatrix();
-
-		modelStack.PushMatrix();
-		modelStack.Translate(31, 4, -57);
-		modelStack.Rotate(-180, 0, 1, 0);
-		modelStack.Scale(30, 30, 30);
-		RenderMesh(meshList[GEO_BOOKS], true);
-		modelStack.PopMatrix();
-
-
-		modelStack.PushMatrix();
-		modelStack.Translate(25, 18, -57);
-		modelStack.Rotate(-180, 0, 1, 0);
-		modelStack.Scale(30, 30, 30);
-		RenderMesh(meshList[GEO_BOOKS], true);
-		modelStack.PopMatrix();
-
-		modelStack.PushMatrix();
-		modelStack.Translate(21,11, -57);
-		modelStack.Rotate(-180, 0, 1, 0);
-		modelStack.Scale(30, 30, 30);
-		RenderMesh(meshList[GEO_BOOKS], true);
-		modelStack.PopMatrix();
-
-		modelStack.PushMatrix();
-		modelStack.Translate(23, 4, -57);
-		modelStack.Rotate(-180, 0, 1, 0);
-		modelStack.Scale(30, 30, 30);
-		RenderMesh(meshList[GEO_BOOKS], true);
-		modelStack.PopMatrix();
-
-		modelStack.PushMatrix();
-		modelStack.Translate(19, 0, -20);
-		modelStack.Rotate(-180, 0, 1, 0);
-		modelStack.Scale(50, 50, 50);
-		RenderMesh(meshList[GEO_RUG2], true);
-		modelStack.PopMatrix();
-
-
-		modelStack.PushMatrix();
-		modelStack.Translate(55, 0, 50);
-		modelStack.Rotate(90, 0, 1, 0);
-		modelStack.Scale(60, 40, 60);
-		RenderMesh(meshList[GEO_BENCH], true);
-		modelStack.PopMatrix();
-
-		modelStack.PushMatrix();
-		modelStack.Translate(55, 20, 50);
-		modelStack.Rotate(90, 0, 1, 0);
-		modelStack.Scale(50, 30, 50);
-		RenderMesh(meshList[GEO_COATRACK], true);
-		modelStack.PopMatrix();
-
-	}
-
-
-
-}
-
-void SceneHome::RenderTextOnScreen(Mesh* mesh, std::string text, Color color, float size, float x, float y)
+void SceneHome::RenderTextOnScreen(Mesh* mesh, std::string text, Color color, float size, float x, float y, float xRotation, float zRotation)
 {
 	if (!mesh || mesh->textureID <= 0) //Proper error check
 		return;
@@ -699,6 +1024,8 @@ void SceneHome::RenderTextOnScreen(Mesh* mesh, std::string text, Color color, fl
 	modelStack.PushMatrix();
 	modelStack.LoadIdentity(); //Reset modelStack
 	modelStack.Translate(x, y, 0);
+	modelStack.Rotate(xRotation, 1, 0, 0);
+	modelStack.Rotate(zRotation, 0, 0, 1);
 	modelStack.Scale(size, size, size);
 
 	glUniform1i(m_parameters[U_TEXT_ENABLED], 1);
@@ -754,7 +1081,7 @@ std::vector<float> SceneHome::getNumberValues(std::string filename)
 	return ret;
 }
 
-void SceneHome::RenderImageOnScreen(Mesh* mesh, Color color, float sizex, float sizey, float x, float y)
+void SceneHome::RenderImageOnScreen(Mesh* mesh, Color color, float sizex, float sizey, float x, float y, float xRotation, float zRotation)
 {
 	if (!mesh || mesh->textureID <= 0) //Proper error check
 		return;
@@ -768,7 +1095,8 @@ void SceneHome::RenderImageOnScreen(Mesh* mesh, Color color, float sizex, float 
 	modelStack.PushMatrix();
 	modelStack.LoadIdentity(); //Reset modelStack
 	modelStack.Translate(x, y, 0);
-	modelStack.Rotate(180, 0, 0, 1);
+	modelStack.Rotate(xRotation, 1, 0, 0);
+	modelStack.Rotate(zRotation, 0, 0, 1);
 	modelStack.Scale(sizex, sizey, 1);
 
 	Mtx44 characterSpacing;
