@@ -1,0 +1,44 @@
+b:0
+s:Karen From Finance (karen@financegroup.com)
+Hey! It's Karen! I noticed your department has 
+not settled the fees for last quater's project. 
+Could you send me the fees for this ASAP? It's
+really urgent. Thanks.
+ 
+b:1
+s:FedEX (customer_support@fedex.com)
+Your company package is currently on hold 
+and require a redeliver. To schedule a redeliver a fee
+of 2,40 S$ will be charged. Failure to collect will 
+result in package being discarded.  
+ 
+b:1
+s:GlobalPay (VT@globalpay.com)
+Dear User, we regret to inform you that your account
+has been restricted. To continue using our services,
+please download the file and update your login info.
+@ globalPaymentsInc
+ 
+b:1
+s:Wapple Security (mike_halphien@speinriftgroup)
+Someone has logged In to Your Account from another
+device at 11:10am yesterday. 
+If this is not you, Click here to change 
+your password.
+ 
+b:1
+s:Jenny Wong (wRe2X9W13!1@gmail.com)
+Hi, Can you do me a favor? There's a pending invoice
+from one of our clients but I'm on holiday so I need
+you to take care of it for me. They contacted me and
+I told them to send it to you through email. Thanks!
+ 
+b:0
+s:Mei Leng (MeiLeng@company.com)
+Please check through the documents and confirm
+all the information is correct BY TODAY. This is
+very urgent so work on it ASAP.
+ 
+b:1
+s:Filler
+fillertext
