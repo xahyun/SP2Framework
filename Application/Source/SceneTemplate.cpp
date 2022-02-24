@@ -2,18 +2,20 @@
 #include "Application.h"
 #include "Mtx44.h"
 #include "GL\glew.h"
-#include <ostream>
+#include <iostream>
 
 #include "shader.hpp"
 #include "Utility.h"
 #include <vector>
 #include <fstream>
 #include <sstream>
+#include "clock.h"
 
 
 SceneTemplate::SceneTemplate()
 {
 	fontData = getNumberValues("Image//Fonts//FontData.csv");
+	phoneState = P_PHONEOFF; pageCounter = 0;
 }
 
 SceneTemplate::~SceneTemplate()
@@ -125,7 +127,7 @@ void SceneTemplate::Init()
 		glUniform1f(m_parameters[U_LIGHT1_EXPONENT], light[1].exponent);
 	}
 
-	camera.Init(Vector3(0, 15, 0), Vector3(1, 1, 1), Vector3(0, 1, 0));
+	camera.Init(Vector3(0, 15, 0), Vector3(0, 10, -10), Vector3(0, 1, 0));
 
 	Mesh::SetMaterialLoc(m_parameters[U_MATERIAL_AMBIENT], m_parameters[U_MATERIAL_DIFFUSE], m_parameters[U_MATERIAL_SPECULAR], m_parameters[U_MATERIAL_SHININESS]);
 
@@ -156,23 +158,65 @@ void SceneTemplate::Init()
 	}
 
 	//others
-	meshList[GEO_TEMP_QUAD] = MeshBuilder::GenerateSphere("sphere", Color(1, 0, 0), 1);
+	meshList[GEO_TEMP_QUAD] = MeshBuilder::GenerateQuad("Diag", Color(1, 1, 1), 1, 1.5, 1);
+	meshList[GEO_TEMP_QUAD]->textureID = LoadTGA("Image//cursor.tga");
 
 	meshList[GEO_TEXT] = MeshBuilder::GenerateText("text", 16, 16);
-	meshList[GEO_TEXT]->textureID = LoadTGA("Image//fonts//ArialRegularBoldItalic.tga");
+	meshList[GEO_TEXT]->textureID = LoadTGA("Image//fonts//SegoeUI.tga");
 	meshList[GEO_DIALOG_BOX] = MeshBuilder::GenerateQuad("Diag", Color(1, 1, 1), 80, 30, 1);
 	meshList[GEO_DIALOG_BOX]->textureID = LoadTGA("Image//dialogBox.tga");
+
+	meshList[GEO_WATCH] = MeshBuilder::GenerateQuad("watch", Color(1, 1, 1), 1, 1, 1);
+	meshList[GEO_WATCH]->textureID = LoadTGA("Image//watchInterface.tga");
+
+	//phone UI
+	{
+		meshList[GEO_PHONE_ICON] = MeshBuilder::GenerateQuad("phoneIcon", Color(1, 1, 1), 1, 1, 1);
+		meshList[GEO_PHONE_ICON]->textureID = LoadTGA("Image//phoneUI//phoneIcon.tga");
+		meshList[GEO_PHONE_UI] = MeshBuilder::GenerateQuad("outsideBox", Color(1, 1, 1), 1, 1, 1);
+		meshList[GEO_PHONE_UI]->textureID = LoadTGA("Image//phoneUI//outside box.tga");
+		meshList[GEO_HOME_ICON] = MeshBuilder::GenerateQuad("home", Color(1, 1, 1), 1, 1, 1);
+		meshList[GEO_HOME_ICON]->textureID = LoadTGA("Image//phoneUI//home_icon.tga");
+		meshList[GEO_CHAT_ICON] = MeshBuilder::GenerateQuad("chat", Color(1, 1, 1), 1, 1, 1);
+		meshList[GEO_CHAT_ICON]->textureID = LoadTGA("Image//phoneUI//chat_icon.tga");
+		meshList[GEO_TASKS_ICON] = MeshBuilder::GenerateQuad("tasks", Color(1, 1, 1), 1, 1, 1);
+		meshList[GEO_TASKS_ICON]->textureID = LoadTGA("Image//phoneUI//tasks_icon.tga");
+		meshList[GEO_MONEY_ICON] = MeshBuilder::GenerateQuad("outsideBox", Color(1, 1, 1), 1, 1, 1);
+		meshList[GEO_MONEY_ICON]->textureID = LoadTGA("Image//phoneUI//money_icon.tga");
+		meshList[GEO_SOCIALSCORE_ICON] = MeshBuilder::GenerateQuad("outsideBox", Color(1, 1, 1), 1, 1, 1);
+		meshList[GEO_SOCIALSCORE_ICON]->textureID = LoadTGA("Image//phoneUI//ss_icon.tga");
+		meshList[GEO_SOCIALSCORE_UI] = MeshBuilder::GenerateQuad("socialScoreUI", Color(1, 1, 1), 1, 1, 1);
+		meshList[GEO_SOCIALSCORE_UI]->textureID = LoadTGA("Image//phoneUI//socialScore_UI.tga");
+		meshList[GEO_SOCIALSCORE_BAR] = MeshBuilder::GenerateQuad("socialScoreUI", Color(1, 1, 1), 1, 1, 1);
+		meshList[GEO_SOCIALSCORE_BAR]->textureID = LoadTGA("Image//phoneUI//socialScore_bar.tga");
+		meshList[GEO_HELP_ICON] = MeshBuilder::GenerateQuad("help", Color(1, 1, 1), 1, 1, 1);
+		meshList[GEO_HELP_ICON]->textureID = LoadTGA("Image//phoneUI//help_icon.tga");
+	}
 
 	Mtx44 projection;
 	projection.SetToPerspective(45.f, 4.f / 3.f, 0.1f, 1000.f);
 	projectionStack.LoadMatrix(projection);
 }
 
+void SceneTemplate::TransferGameInfo(Game* game)
+{
+	this->clock = game->gameClock;
+	this->Player = game->gamePlayer;
+	this->phone = game->playerPhone;
+}
+
 
 void SceneTemplate::Update(double dt)
 {
 	camera.Update(static_cast<float>(dt));
+	Application::getCursorPosition(xpos, ypos);
+	Application::worldSpaceToScreenSpace(xpos, ypos);
+	Application::hideCursorWhenInScreen();
 
+	clock->UpdateClock(dt);
+	phone->Update(float(dt));
+	socialMeter = static_cast<int>(Player->getSocialMeter());
+	money = static_cast<int>(Player->getMoney());
 
 	//debug controls xx
 	{
@@ -196,21 +240,112 @@ void SceneTemplate::Update(double dt)
 		if (Application::IsKeyPressed('6')) {
 			enableLight = true;
 		}
-
-		if (Application::IsKeyPressed('I'))
-			light[1].position.z -= (float)(6 * dt);
-		if (Application::IsKeyPressed('K'))
-			light[1].position.z += (float)(6 * dt);
-		if (Application::IsKeyPressed('J'))
-			light[1].position.x -= (float)(6 * dt);
-		if (Application::IsKeyPressed('L'))
-			light[1].position.x += (float)(6 * dt);
-		if (Application::IsKeyPressed('O'))
-			light[1].position.y -= (float)(6 * dt);
-		if (Application::IsKeyPressed('P'))
-			light[1].position.y += (float)(6 * dt);
 	}
 
+	clockTime = clock->getHourMinute();
+	if (!Application::isMouseButtonPressed(0) && !Application::isMouseButtonPressed(1) && !Application::isMouseButtonPressed(2)) {
+		mouseToggle = true;
+	}
+
+
+	//phone hover animation to make things more pussy popping
+	if (!isPhoneOpen) {
+		if (65 <= xpos && xpos <= 75 && 45 <= ypos && ypos <= 55 && mouseToggle && Application::isMouseButtonPressed(0)) {
+			mouseToggle = false;
+			camera.canLookAround = false;
+			camera.canMove = false;
+			isPhoneOpen = true;
+			phoneState = P_HOME;
+		}
+
+		if (65 <= xpos && xpos <= 75 && 45 <= ypos && ypos <= 55) { hoverAnimation[2] = true; }
+		else { hoverAnimation[2] = false; }
+
+		if (0 <= xpos && xpos <= 15 && 0 <= ypos && ypos <= 15) { hoverAnimation[0] = true; }
+		else { hoverAnimation[0] = false; }
+	}
+	else {
+		if (35 <= xpos && xpos <= 45 && 38 <= ypos && ypos <= 48) { hoverAnimation[1] = true; }
+		else { hoverAnimation[1] = false; }
+		if (35 <= xpos && xpos <= 45 && 28 <= ypos && ypos <= 38) { hoverAnimation[8] = true; }
+		else { hoverAnimation[8] = false; }
+
+		if (35 <= xpos && xpos <= 45 && 38 <= ypos && ypos <= 48 && mouseToggle && Application::isMouseButtonPressed(0)) {
+			mouseToggle = false;
+			camera.canLookAround = true;
+			camera.canMove = true;
+			isPhoneOpen = false;
+			phoneState = P_PHONEOFF;
+		}
+
+		if (phoneState != P_HOME) {
+			if (35 <= xpos && xpos <= 45 && 28 <= ypos && ypos <= 38 && mouseToggle && Application::isMouseButtonPressed(0)) {
+				mouseToggle = false;
+				phoneState = P_HOME;
+			}
+		}
+
+		switch (phoneState)
+		{
+		case SceneTemplate::P_HOME:
+			//hover animation
+			if (50 < xpos && xpos < 60 && 30 < ypos && ypos < 40) { hoverAnimation[3] = true; }
+			else { hoverAnimation[3] = false; }
+			if (60 < xpos && xpos < 70 && 30 < ypos && ypos < 40) { hoverAnimation[4] = true; }
+			else { hoverAnimation[4] = false; }
+			if (50 < xpos && xpos < 60 && 20 < ypos && ypos < 30) { hoverAnimation[5] = true; }
+			else { hoverAnimation[5] = false; }
+			if (60 < xpos && xpos < 70 && 20 < ypos && ypos < 30) { hoverAnimation[6] = true; }
+			else { hoverAnimation[6] = false; }
+			if (50 < xpos && xpos < 60 && 10 < ypos && ypos < 20) { hoverAnimation[7] = true; }
+			else { hoverAnimation[7] = false; }
+
+			//mouse press things <3
+			if (50 < xpos && xpos < 60 && 30 < ypos && ypos < 40 && mouseToggle && Application::isMouseButtonPressed(0)) {
+				mouseToggle = false;
+				phoneState = P_CHATLIST;
+			}
+			if (60 < xpos && xpos < 70 && 30 < ypos && ypos < 40 && mouseToggle && Application::isMouseButtonPressed(0)) {
+				mouseToggle = false;
+				pageCounter = 0;
+				phoneState = P_TASKS;
+			}
+			if (50 < xpos && xpos < 60 && 20 < ypos && ypos < 30 && mouseToggle && Application::isMouseButtonPressed(0)) {
+				mouseToggle = false;
+				phoneState = P_MONEY;
+			}
+			if (60 < xpos && xpos < 70 && 20 < ypos && ypos < 30 && mouseToggle && Application::isMouseButtonPressed(0)) {
+				mouseToggle = false;
+				phoneState = P_SOCIALSCORE;
+			}
+			break;
+		case SceneTemplate::P_CHAT:
+			break;
+		case SceneTemplate::P_CHATLIST:
+			break;
+		case SceneTemplate::P_MONEY:
+			break;
+		case SceneTemplate::P_SOCIALSCORE:
+			break;
+		case SceneTemplate::P_HELP:
+			break;
+		case SceneTemplate::P_TASKS:
+			if (56 < xpos && xpos < 60 && 31 < ypos && ypos < 35 && mouseToggle && Application::isMouseButtonPressed(0)) {
+				mouseToggle = false;
+				if (pageCounter > 0) {
+					pageCounter--;
+				}
+			}
+			if (56 < xpos && xpos < 60 && 11 < ypos && ypos < 15 && mouseToggle && Application::isMouseButtonPressed(0)) {
+				mouseToggle = false;
+				if (unsigned(pageCounter) < phone->taskList.size() - 5) {
+					pageCounter++;
+				}
+			}
+			break;
+		}
+	}
+	
 }
 
 
@@ -236,6 +371,33 @@ void SceneTemplate::Render()
 		RenderSkybox();
 	}
 
+	//regular game UI
+	if (!isPhoneOpen) {
+		if (hoverAnimation[2]) { RenderImageOnScreen(meshList[GEO_PHONE_ICON], Color(1, 1, 1), 9, 9, 70, 50, 0, 20); }
+		else { RenderImageOnScreen(meshList[GEO_PHONE_ICON], Color(1, 1, 1), 8, 8, 70, 50, 0, 0); }
+
+		if (hoverAnimation[0]) { RenderImageOnScreen(meshList[GEO_WATCH], Color(1, 1, 1), 30, 40, 10, 10, 0, 180); }
+		else { RenderImageOnScreen(meshList[GEO_WATCH], Color(1, 1, 1), 30, 40, 8, 6, 0, 215); }
+
+		//render last because it needs to be top
+		if (hoverAnimation[0]) { RenderTextOnScreen(meshList[GEO_TEXT], clockTime, Color(1, 1, 1), 5, 4, 7); }
+		else { RenderTextOnScreen(meshList[GEO_TEXT], clockTime, Color(1, 1, 1), 5, 5, 0, 0, 35); }
+
+	}
+	else {
+		RenderPhoneUI();
+	}
+
+	//render cursor last because it has to show up on top
+	{
+		modelStack.PushMatrix();
+		RenderImageOnScreen(meshList[GEO_TEMP_QUAD], Color(1, 1, 1), 5, 5, static_cast<float>(xpos), static_cast<float>(ypos - 3), 0, 180);
+		modelStack.PopMatrix();
+	}
+}
+
+void SceneTemplate::Reset()
+{
 }
 
 void SceneTemplate::Exit()
@@ -344,6 +506,127 @@ void SceneTemplate::RenderSkybox()
 	modelStack.PopMatrix();
 }
 
+void SceneTemplate::RenderPhoneUI()
+{
+	RenderImageOnScreen(meshList[GEO_PHONE_UI], Color(1, 1, 1), 30, 45, 60, 28);
+
+	if (hoverAnimation[1]) { RenderImageOnScreen(meshList[GEO_PHONE_ICON], Color(1, 1, 1), 9, 9, 40, 43, 0, 20); }
+	else { RenderImageOnScreen(meshList[GEO_PHONE_ICON], Color(1, 1, 1), 8, 8, 40, 43); }
+
+	if (phoneState != P_HOME) {
+		if (hoverAnimation[8]) { RenderImageOnScreen(meshList[GEO_HOME_ICON], Color(1, 1, 1), 9, 9, 40, 33, 0, 20); }
+		else { RenderImageOnScreen(meshList[GEO_HOME_ICON], Color(1, 1, 1), 8, 8, 40, 33); }
+	}
+
+	switch (phoneState)
+	{
+	case SceneTemplate::P_HOME:
+		if (hoverAnimation[3]) { RenderImageOnScreen(meshList[GEO_CHAT_ICON], Color(1, 1, 1), 9, 9, 55, 35, 0, 20); }
+		else { RenderImageOnScreen(meshList[GEO_CHAT_ICON], Color(1, 1, 1), 8, 8, 55, 35, 0, 0); }
+		if (hoverAnimation[4]) { RenderImageOnScreen(meshList[GEO_TASKS_ICON], Color(1, 1, 1), 9, 9, 65, 35, 0, 20); }
+		else { RenderImageOnScreen(meshList[GEO_TASKS_ICON], Color(1, 1, 1), 8, 8, 65, 35, 0, 0); }
+		if (hoverAnimation[5]) { RenderImageOnScreen(meshList[GEO_MONEY_ICON], Color(1, 1, 1), 9, 9, 55, 25, 0, 20); }
+		else { RenderImageOnScreen(meshList[GEO_MONEY_ICON], Color(1, 1, 1), 8, 8, 55, 25, 0, 0); }
+		if (hoverAnimation[6]) { RenderImageOnScreen(meshList[GEO_SOCIALSCORE_ICON], Color(1, 1, 1), 9, 9, 65, 25, 0, 20); }
+		else { RenderImageOnScreen(meshList[GEO_SOCIALSCORE_ICON], Color(1, 1, 1), 8, 8, 65, 25, 0, 0); }
+		if (hoverAnimation[7]) { RenderImageOnScreen(meshList[GEO_HELP_ICON], Color(1, 1, 1), 9, 9, 55, 15, 0, 20); }
+		else { RenderImageOnScreen(meshList[GEO_HELP_ICON], Color(1, 1, 1), 8, 8, 55, 15, 0, 0); }
+
+		RenderTextOnScreen(meshList[GEO_TEXT], "my phone <3", Color(0.6f, 0.3f, 0.3f), 3, 52, 41);
+		break;
+
+	case SceneTemplate::P_CHATLIST:
+		break;
+
+	case SceneTemplate::P_MONEY:
+		RenderTextOnScreen(meshList[GEO_TEXT], "TY-RA Bank", Color(0.6f, 0.3f, 0.3f), 4, 50, 40);
+		RenderTextOnScreen(meshList[GEO_TEXT], "Account Balance:", Color(0.6f, 0.3f, 0.3f), 3, 49, 37);
+		if (money > 5000) { RenderTextOnScreen(meshList[GEO_TEXT], "$ " + std::to_string(money), Color(0.3f, 0.7f, 0.3f), 5, 52, 30); }
+		else if (money < 0) { RenderTextOnScreen(meshList[GEO_TEXT], "-$ " + std::to_string(abs(money)), Color(0.7f, 0.3f, 0.3f), 5, 52, 30); }
+		else { RenderTextOnScreen(meshList[GEO_TEXT], "$ " + std::to_string(money), Color(0.7f, 0.7f, 0.4f), 5, 52, 30); }
+		
+		RenderTextOnScreen(meshList[GEO_TEXT], "Bank Rating:", Color(0.6f, 0.3f, 0.3f), 4, 49, 21);
+		if (money > 20000) { 
+			RenderTextOnScreen(meshList[GEO_TEXT], "Splendid!", Color(0.7f, 0.7f, 0.7f), 3, 52, 17);
+			RenderTextOnScreen(meshList[GEO_TEXT], "Here is a", Color(0.3f, 0.3f, 0.3f), 3, 52, 14);
+			RenderTextOnScreen(meshList[GEO_TEXT], "medal :)", Color(0.3f, 0.3f, 0.3f), 3, 52, 11);
+		}
+		else if (money > 9000) { 
+			RenderTextOnScreen(meshList[GEO_TEXT], "Model citizen!", Color(0.3f, 0.7f, 0.3f), 3, 52, 17);
+			RenderTextOnScreen(meshList[GEO_TEXT], "Keep it up!", Color(0.3f, 0.3f, 0.3f), 3, 52, 14);
+		}
+		else if (money > 5000) {
+			RenderTextOnScreen(meshList[GEO_TEXT], "Meh.", Color(0.3f, 0.3f, 0.3f), 3, 52, 17);
+			RenderTextOnScreen(meshList[GEO_TEXT], "you're doing...", Color(0.3f, 0.3f, 0.3f), 3, 52, 14);
+			RenderTextOnScreen(meshList[GEO_TEXT], "fine, I guess.", Color(0.3f, 0.3f, 0.3f), 3, 52, 11);
+		}
+		else if (money < -1000) {
+			RenderTextOnScreen(meshList[GEO_TEXT], "In debt", Color(0.7f, 0.3f, 0.3f), 3, 52, 17);
+			RenderTextOnScreen(meshList[GEO_TEXT], "please be more", Color(0.3f, 0.3f, 0.3f), 3, 52, 14);
+			RenderTextOnScreen(meshList[GEO_TEXT], "careful.", Color(0.3f, 0.3f, 0.3f), 3, 52, 11);
+		}
+		else { 
+			RenderTextOnScreen(meshList[GEO_TEXT], "Mediocre.", Color(0.7f, 0.7f, 0.3f), 3, 52, 17);
+			RenderTextOnScreen(meshList[GEO_TEXT], "Do better.", Color(0.3f, 0.3f, 0.3f), 3, 52, 14);
+		}
+		break;
+
+	case SceneTemplate::P_SOCIALSCORE:
+		RenderImageOnScreen(meshList[GEO_SOCIALSCORE_BAR], Color(1, 1, 1), (16 * (static_cast<float>(socialMeter)/100)), 10, (52 + (8 * (static_cast<float>(socialMeter) / 100))), 35);
+		RenderImageOnScreen(meshList[GEO_SOCIALSCORE_UI], Color(1, 1, 1), 20, 20, 60, 30);
+
+		RenderTextOnScreen(meshList[GEO_TEXT], "SOCIAL METER", Color(0.6f, 0.3f, 0.3f), 3, 50, 18);
+		break;
+
+	case SceneTemplate::P_HELP:
+		break;
+
+	case SceneTemplate::P_TASKS:
+		RenderTextOnScreen(meshList[GEO_TEXT], "TO DO: ", Color(0.6f, 0.3f, 0.3f), 4, 50, 40);
+		RenderTextOnScreen(meshList[GEO_TEXT], "^", Color(0.6f, 0.3f, 0.3f), 4, 58, 33);
+		RenderTextOnScreen(meshList[GEO_TEXT], "v", Color(0.6f, 0.3f, 0.3f), 4, 58, 13);
+		if (static_cast<int>(phone->taskList.size()) - 1 - pageCounter > 0) { 
+			if (!phone->taskList[static_cast<int>(phone->taskList.size()) - 1 - pageCounter].isCompleted) { RenderTextOnScreen(meshList[GEO_TEXT], "-", Color(0.6f, 0.3f, 0.3f), 3, 48, 30); RenderTextOnScreen(meshList[GEO_TEXT], phone->taskList[static_cast<int>(phone->taskList.size()) - 1 - pageCounter].taskName, Color(0.6f, 0.3f, 0.3f), 3, 50, 30); }
+			else {
+				RenderTextOnScreen(meshList[GEO_TEXT], "-", Color(0.5f, 0.5f, 0.5f), 3, 48, 30);
+				RenderTextOnScreen(meshList[GEO_TEXT], phone->taskList[phone->taskList.size() - 1 - int(pageCounter)].taskName, Color(0.5f, 0.5f, 0.5f), 3, 50, 30);
+			}
+		}
+		if (static_cast<int>(phone->taskList.size()) - 2 - pageCounter > 0) {
+			if (!phone->taskList[static_cast<int>(phone->taskList.size()) - 2 - pageCounter].isCompleted) { RenderTextOnScreen(meshList[GEO_TEXT], "-", Color(0.6f, 0.3f, 0.3f), 3, 48, 27); RenderTextOnScreen(meshList[GEO_TEXT], phone->taskList[static_cast<int>(phone->taskList.size()) - 2 - pageCounter].taskName, Color(0.6f, 0.3f, 0.3f), 3, 50, 27); }
+			else {
+				RenderTextOnScreen(meshList[GEO_TEXT], "-", Color(0.5f, 0.5f, 0.5f), 3, 48, 27);
+				RenderTextOnScreen(meshList[GEO_TEXT], phone->taskList[static_cast<int>(phone->taskList.size()) - 2 - pageCounter].taskName, Color(0.5f, 0.5f, 0.5f), 3, 50, 27);
+			}
+		}
+		if (static_cast<int>(phone->taskList.size()) - 3 - pageCounter > 0) {
+			if (!phone->taskList[static_cast<int>(phone->taskList.size()) - 3 - pageCounter].isCompleted) { RenderTextOnScreen(meshList[GEO_TEXT], "-", Color(0.6f, 0.3f, 0.3f), 3, 48, 24); RenderTextOnScreen(meshList[GEO_TEXT], phone->taskList[static_cast<int>(phone->taskList.size()) - 3 - pageCounter].taskName, Color(0.6f, 0.3f, 0.3f), 3, 50, 24); }
+			else {
+				RenderTextOnScreen(meshList[GEO_TEXT], "-", Color(0.5f, 0.5f, 0.5f), 3, 48, 24);
+				RenderTextOnScreen(meshList[GEO_TEXT], phone->taskList[static_cast<int>(phone->taskList.size()) - 3 - pageCounter].taskName, Color(0.5f, 0.5f, 0.5f), 3, 50, 24);
+			}
+		}
+		if (static_cast<int>(phone->taskList.size()) - 4 - pageCounter > 0) {
+			if (!phone->taskList[static_cast<int>(phone->taskList.size()) - 4 - pageCounter].isCompleted) { RenderTextOnScreen(meshList[GEO_TEXT], "-", Color(0.6f, 0.3f, 0.3f), 3, 48, 21); RenderTextOnScreen(meshList[GEO_TEXT], phone->taskList[static_cast<int>(phone->taskList.size()) - 4 - pageCounter].taskName, Color(0.6f, 0.3f, 0.3f), 3, 50, 21); }
+			else {
+				RenderTextOnScreen(meshList[GEO_TEXT], "-", Color(0.5f, 0.5f, 0.5f), 3, 48, 21);
+				RenderTextOnScreen(meshList[GEO_TEXT], phone->taskList[static_cast<int>(phone->taskList.size()) - 4 - pageCounter].taskName, Color(0.5f, 0.5f, 0.5f), 3, 50, 21);
+			}
+		}
+		if (static_cast<int>(phone->taskList.size()) - 5 - pageCounter > 0) {
+			if (!phone->taskList[static_cast<int>(phone->taskList.size()) - 5 - pageCounter].isCompleted) { RenderTextOnScreen(meshList[GEO_TEXT], "-", Color(0.6f, 0.3f, 0.3f), 3, 48, 18); RenderTextOnScreen(meshList[GEO_TEXT], phone->taskList[static_cast<int>(phone->taskList.size()) - 5 - pageCounter].taskName, Color(0.6f, 0.3f, 0.3f), 3, 50, 18); }
+			else {
+				RenderTextOnScreen(meshList[GEO_TEXT], "-", Color(0.5f, 0.5f, 0.5f), 3, 48, 18);
+				RenderTextOnScreen(meshList[GEO_TEXT], phone->taskList[static_cast<int>(phone->taskList.size()) - 5 - pageCounter].taskName, Color(0.5f, 0.5f, 0.5f), 3, 50, 18);
+			}
+		}
+
+		break;
+	}
+
+	RenderTextOnScreen(meshList[GEO_TEXT], clockTime, Color(0.6f, 0.3f, 0.3f), 3, 56, 44);
+}
+
 void SceneTemplate::RenderText(Mesh* mesh, std::string text, Color color)
 {
 	if (!mesh || mesh->textureID <= 0) //Proper error check
@@ -373,7 +656,7 @@ void SceneTemplate::RenderText(Mesh* mesh, std::string text, Color color)
 	//glEnable(GL_DEPTH_TEST); //uncomment for RenderTextOnScreen
 }
 
-void SceneTemplate::RenderTextOnScreen(Mesh* mesh, std::string text, Color color, float size, float x, float y)
+void SceneTemplate::RenderTextOnScreen(Mesh* mesh, std::string text, Color color, float size, float x, float y, float xRotation, float zRotation)
 {
 	if (!mesh || mesh->textureID <= 0) //Proper error check
 		return;
@@ -389,6 +672,8 @@ void SceneTemplate::RenderTextOnScreen(Mesh* mesh, std::string text, Color color
 	modelStack.PushMatrix();
 	modelStack.LoadIdentity(); //Reset modelStack
 	modelStack.Translate(x, y, 0);
+	modelStack.Rotate(xRotation, 1, 0, 0);
+	modelStack.Rotate(zRotation, 0, 0, 1);
 	modelStack.Scale(size, size, size);
 
 	glUniform1i(m_parameters[U_TEXT_ENABLED], 1);
@@ -444,7 +729,7 @@ std::vector<float> SceneTemplate::getNumberValues(std::string filename)
 	return ret;
 }
 
-void SceneTemplate::RenderImageOnScreen(Mesh* mesh, Color color, float sizex, float sizey, float x, float y)
+void SceneTemplate::RenderImageOnScreen(Mesh* mesh, Color color, float sizex, float sizey, float x, float y, float xRotation, float zRotation)
 {
 	if (!mesh || mesh->textureID <= 0) //Proper error check
 		return;
@@ -458,7 +743,8 @@ void SceneTemplate::RenderImageOnScreen(Mesh* mesh, Color color, float sizex, fl
 	modelStack.PushMatrix();
 	modelStack.LoadIdentity(); //Reset modelStack
 	modelStack.Translate(x, y, 0);
-	modelStack.Rotate(180, 0, 0, 1);
+	modelStack.Rotate(xRotation, 1, 0, 0);
+	modelStack.Rotate(zRotation, 0, 0, 1);
 	modelStack.Scale(sizex, sizey, 1);
 
 	Mtx44 characterSpacing;
