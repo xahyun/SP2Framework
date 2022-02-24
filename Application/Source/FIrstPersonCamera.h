@@ -20,6 +20,8 @@ public:
 	float xOffset, yOffset;
 	//if need to stay static
 	bool canMove;
+	bool canLookAround;
+	float CAMERA_SPEED = 120;
 
 	FirstPersonCamera();
 	~FirstPersonCamera();

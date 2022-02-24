@@ -1,0 +1,83 @@
+c:HDMI CABLES
+n:Flexi-HDMI cable
+l:1
+p:7
+s:0
+i:1
+b:4
+ 
+n:3-in-1 HDMI
+l:0
+b:3
+p:13
+i:1
+s:0
+ 
+n:WAYV brand HDMI
+l:1
+b:2
+p:15
+i:0
+s:1
+ 
+//
+c:MOBILE PHONES
+n:Loonatic model 2
+l:0
+b:1
+p:100
+i:1
+s:1
+
+n:NCTech mobile
+l:1
+b:4
+p:600
+i:1
+s:0
+
+n:STAYC mobile
+l:0
+b:2
+p:800
+i:1
+s:0
+
+n:momomobile 2
+l:1
+b:4
+p:300
+i:1
+s:1
+ 
+//
+c:WATCHES
+n:Roxxx men's
+l:0
+b:3
+p:400
+i:1
+s:0
+
+n:TWICE, black
+l:1
+b:5
+p:320
+i:0
+s:0
+
+n:Rolex wacht
+l:0
+b:2
+p:1,200
+i:1
+s:1
+
+n:IU milgauss
+l:0
+b:4
+p:340
+i:1
+s:0
+ 
+//
