@@ -162,7 +162,7 @@ private:
 	unsigned m_parameters[U_TOTAL];
 	Mesh* meshList[NUM_GEOMETRY];
 
-	FirstPersonCamera camera;
+	CameraHome camera;
 	MS modelStack, viewStack, projectionStack;
 	Light light[5];
 
