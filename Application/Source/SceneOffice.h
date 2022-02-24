@@ -204,7 +204,7 @@ private:
 	unsigned m_parameters[U_TOTAL];
 	Mesh* meshList[NUM_GEOMETRY];
 
-	FirstPersonCamera camera;
+	CameraCity camera;
 	MS modelStack, viewStack, projectionStack;
 	Light light[5];
 	Notification notifs = Notification::N_OFF;
